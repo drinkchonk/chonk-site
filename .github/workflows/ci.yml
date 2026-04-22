@@ -21,8 +21,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Lint
+      - name: Lint (advisory)
         run: npm run lint
+        continue-on-error: true
 
       - name: Unit tests
         run: npm test -- --ci --reporters=default

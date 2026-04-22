@@ -18,15 +18,21 @@ const beats = [
  */
 export default function Hero() {
   const [beat, setBeat] = useState(0);
-  const [prefersReduced, setPrefersReduced] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReduced(mq.matches);
-    if (mq.matches) return;
+    const onChange = () => setPrefersReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    if (mq.matches) return () => mq.removeEventListener("change", onChange);
     const t = setInterval(() => setBeat((b) => (b + 1) % beats.length), 3400);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      mq.removeEventListener("change", onChange);
+    };
   }, []);
 
   const activeBeat = beats[beat];
