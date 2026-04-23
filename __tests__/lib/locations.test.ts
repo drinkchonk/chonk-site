@@ -1,11 +1,12 @@
 import { locations } from "@/lib/data/locations";
 
 describe("locations data", () => {
-  it("includes the open Osborne Park flagship and two coming-soon stalls", () => {
+  it("lists three pre-launch pop-ups, all still coming-soon", () => {
     expect(locations).toHaveLength(3);
     const open = locations.filter((l) => l.status === "open");
-    expect(open).toHaveLength(1);
-    expect(open[0].id).toBe("osborne-park");
+    expect(open).toHaveLength(0);
+    const soon = locations.filter((l) => l.status === "coming-soon");
+    expect(soon).toHaveLength(3);
   });
 
   it("open locations expose trading hours; coming-soon locations do not", () => {

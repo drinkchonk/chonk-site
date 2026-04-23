@@ -3,7 +3,7 @@ import { products, featuredProducts } from "@/lib/data/products";
 describe("products data", () => {
   it("contains all four flavours", () => {
     const ids = products.map((p) => p.id).sort();
-    expect(ids).toEqual(["chonkalate", "chonkey-monkey", "lite", "raw"]);
+    expect(ids).toEqual(["choc-chonk", "chonkey-monkey", "lite", "raw"]);
   });
 
   it("every featured product has a 50g two-scoop build", () => {
@@ -43,7 +43,7 @@ describe("products data", () => {
   });
 
   it("every product uses contrasting bg/text colours from the brand palette", () => {
-    const allowedBg = ["#C8E8C0", "#6B4423", "#F4D35E", "#FFD8F3"];
+    const allowedBg = ["#C8E8C0", "#6B4423", "#F4D35E", "#F2B8CC"];
     const allowedText = ["#1A1614", "#FEF6EC"];
     products.forEach((p) => {
       expect(allowedBg).toContain(p.bgColor);
