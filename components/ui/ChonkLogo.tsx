@@ -2,9 +2,11 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type ChonkLogoProps = {
-  /** `dark` = black wordmark on light/pink backgrounds.
-   *  `light` = white wordmark on dark backgrounds. */
-  variant?: "dark" | "light";
+  /** `dark`        = black wordmark ("chonk") on light/pink backgrounds.
+   *  `dark-splash` = black full "chonk!!" mark (with splash) on light/pink bg.
+   *  `light`       = white wordmark on dark backgrounds.
+   *  `pink`        = brand-pink full "chonk!!" mark on dark backgrounds. */
+  variant?: "dark" | "dark-splash" | "light" | "pink";
   size?: "sm" | "md" | "lg";
   className?: string;
 };
@@ -21,7 +23,13 @@ export default function ChonkLogo({
   className,
 }: ChonkLogoProps) {
   const src =
-    variant === "light" ? "/images/logo-white.png" : "/images/logo-pink.png";
+    variant === "light"
+      ? "/images/logo-white.png"
+      : variant === "pink"
+      ? "/images/logo-brand-pink.png"
+      : variant === "dark-splash"
+      ? "/images/logo-brand-dark.png"
+      : "/images/logo-pink.png";
   const { w, h } = dims[size];
 
   return (

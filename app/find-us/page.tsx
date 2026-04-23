@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import WholesaleForm from "./WholesaleForm";
 
 export const metadata: Metadata = {
-  title: "Find Us",
+  title: "Find us",
   description:
-    "Pull up. Chonk stalls across Perth — Osborne Park open now, Perth CBD and Leederville coming soon.",
+    "chonk. is launching soon in Perth. Get on the list for the first pop-up. Wholesale and venue enquiries open now.",
 };
 
 export default function FindUsPage() {
@@ -21,20 +21,28 @@ export default function FindUsPage() {
             Find us
           </span>
           <h1 className="text-hero mt-3 max-w-[820px]">
-            Perth stalls.
+            First pop-up,
             <br />
             <span style={{ color: "var(--color-pink)" }}>
-              More dropping soon.
+              dropping soon in Perth.
             </span>
           </h1>
           <p
-            className="leading-[1.6] max-w-[620px] mt-5"
+            className="leading-[1.6] max-w-[640px] mt-5"
             style={{ color: "var(--color-muted)", fontSize: 17 }}
           >
-            One stall open now in Osborne Park. CBD and Leederville are in
-            build. Tap a pin for the full story — or scroll for addresses,
-            hours and directions.
+            We&apos;re prepping the first chonk. pop-up right now — recipe,
+            compliance, cup, pour. The list knows first. Everyone else finds
+            out shortly after.
           </p>
+          <div className="flex gap-3 flex-wrap mt-7">
+            <a
+              href="/#newsletter"
+              className="chonk-btn chonk-btn-primary chonk-btn-lg"
+            >
+              Get on the list
+            </a>
+          </div>
         </div>
       </section>
 
@@ -49,7 +57,7 @@ export default function FindUsPage() {
               aspectRatio: "16 / 9",
               overflow: "hidden",
             }}
-            aria-label="Stylised map of Perth with Chonk stall pins"
+            aria-label="Stylised map of Perth with coming-soon pop-up pins"
           >
             <svg
               viewBox="0 0 100 56"
@@ -83,7 +91,6 @@ export default function FindUsPage() {
 
             {locations.map((loc) => {
               if (!loc.pin) return null;
-              const isOpen = loc.status === "open";
               return (
                 <div
                   key={loc.id}
@@ -99,9 +106,7 @@ export default function FindUsPage() {
                       width: 18,
                       height: 18,
                       borderRadius: "50%",
-                      background: isOpen
-                        ? "var(--color-proof-fg)"
-                        : "var(--color-pink)",
+                      background: "var(--color-pink)",
                       border: "3px solid var(--color-cream)",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                     }}
@@ -125,7 +130,7 @@ export default function FindUsPage() {
                     }}
                   >
                     {loc.suburb}
-                    {!isOpen && loc.pin.eta ? ` · ${loc.pin.eta}` : ""}
+                    {loc.pin.eta ? ` · ${loc.pin.eta}` : ""}
                   </div>
                 </div>
               );
@@ -141,15 +146,17 @@ export default function FindUsPage() {
               className="text-eyebrow"
               style={{ color: "var(--color-proof-fg)" }}
             >
-              The stalls
+              The roadmap
             </span>
-            <h2 className="text-section">Addresses, hours, directions.</h2>
+            <h2 className="text-section">
+              Perth first. Then everywhere.
+            </h2>
           </header>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {locations.map((loc) => (
               <div
                 key={loc.id}
-                className={cn("loc-card", loc.status === "open" && "open")}
+                className={cn("loc-card")}
               >
                 <div className="flex items-center gap-2">
                   <span
@@ -157,22 +164,14 @@ export default function FindUsPage() {
                       width: 8,
                       height: 8,
                       borderRadius: "50%",
-                      background:
-                        loc.status === "open"
-                          ? "var(--color-proof-fg)"
-                          : "var(--color-muted)",
+                      background: "var(--color-proof-fg)",
                     }}
                   />
                   <span
                     className="text-eyebrow"
-                    style={{
-                      color:
-                        loc.status === "open"
-                          ? "var(--color-proof-fg)"
-                          : "var(--color-muted)",
-                    }}
+                    style={{ color: "var(--color-proof-fg)" }}
                   >
-                    {loc.status === "open" ? "Open now" : "Coming soon"}
+                    Coming soon
                   </span>
                 </div>
                 <h3 style={{ fontSize: 26, letterSpacing: "-0.02em" }}>
@@ -184,38 +183,23 @@ export default function FindUsPage() {
                 >
                   {loc.address}
                 </p>
-                {loc.hours.length > 0 ? (
-                  <div
-                    className="flex flex-col gap-1.5 text-[13px] mt-2 pt-4"
-                    style={{ borderTop: "1px solid var(--color-hairline)" }}
-                  >
-                    {loc.hours.map((h) => (
-                      <div key={h.day} className="flex justify-between">
-                        <span style={{ color: "var(--color-muted)" }}>
-                          {h.day}
-                        </span>
-                        <span>{h.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div
-                    className="text-[13px] mt-2 pt-4"
-                    style={{
-                      color: "var(--color-muted)",
-                      borderTop: "1px solid var(--color-hairline)",
-                    }}
-                  >
-                    Opening {loc.pin?.eta ?? "2026"} · Get notified below
-                  </div>
-                )}
-                <button
-                  type="button"
+                <div
+                  className="text-[13px] mt-2 pt-4"
+                  style={{
+                    color: "var(--color-muted)",
+                    borderTop: "1px solid var(--color-hairline)",
+                  }}
+                >
+                  Opening {loc.pin?.eta ?? "soon"} · Get on the list for the
+                  drop
+                </div>
+                <a
+                  href="/#newsletter"
                   className="chonk-btn chonk-btn-ghost chonk-btn-sm self-start mt-2"
                   style={{ padding: "8px 0" }}
                 >
-                  {loc.status === "open" ? "Get directions →" : "Notify me →"}
-                </button>
+                  Notify me →
+                </a>
               </div>
             ))}
           </div>
@@ -234,7 +218,7 @@ export default function FindUsPage() {
                 className="text-eyebrow"
                 style={{ color: "var(--color-proof-fg)" }}
               >
-                Wholesale & venues
+                Wholesale &amp; venues
               </span>
               <h2 className="text-section mt-3">
                 Got a gym?
@@ -247,9 +231,9 @@ export default function FindUsPage() {
                 className="leading-[1.6] mt-5 max-w-[460px]"
                 style={{ color: "var(--color-muted)", fontSize: 17 }}
               >
-                We pop up inside gyms, studios and leisure centres across WA.
-                Low build-out, no kitchen required. Drop your details and
-                we&apos;ll come back within 48 hours.
+                We&apos;ll pop up inside gyms, studios and leisure centres
+                across WA. Low build-out, no kitchen required. Drop your
+                details and we&apos;ll come back within 48 hours.
               </p>
             </div>
 

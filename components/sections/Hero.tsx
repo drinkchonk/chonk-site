@@ -4,18 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const beats = [
-  { big: "60g", small: "of protein" },
+  { big: "50g", small: "whey-forward protein" },
   { big: "Real food.", small: "No fillers." },
   { big: "No added sugar.", small: "Ever." },
-  { big: "Australia's", small: "highest-protein smoothie." },
+  { big: "Launching soon.", small: "In Perth." },
 ];
 
-/**
- * Flagship hero. Split column layout: copy + CTAs on the left, the 3D cup
- * iframe on the right, ringed by floating stats (60g sticker, "Made fresh"
- * circle, rotating beat pill). The iframe replaces the static splash photo
- * from the design comp — same slot, interactive cup.
- */
 export default function Hero() {
   const [beat, setBeat] = useState(0);
   const [prefersReduced, setPrefersReduced] = useState(() =>
@@ -45,41 +39,38 @@ export default function Hero() {
           <div className="flex flex-col gap-7">
             <div className="eyebrow-dot text-eyebrow">
               <span style={{ color: "var(--color-proof-fg)" }}>
-                Now pouring in Perth
+                Launching soon in Perth
               </span>
             </div>
 
-            <h1 className="text-hero text-ink">
-              It&apos;s time to get{" "}
-              <span style={{ color: "var(--color-pink)" }}>Chonky</span>
-            </h1>
+            <h1 className="text-hero text-ink">50 grams closer.</h1>
 
-            <p className="text-pretty text-muted text-lg leading-[1.55] max-w-[520px]">
-              Fresh-blended protein smoothies with up to 60g of whey isolate,
-              real fruit, and zero shortcuts. Built in Perth, for people who
-              actually train.
+            <p className="text-pretty text-muted text-lg leading-[1.55] max-w-[540px]">
+              The high-protein smoothie for people chasing something — a goal,
+              a feeling, a physique, a lifestyle. Whey-forward, real food, zero
+              compromise on taste.
             </p>
 
             <div className="flex gap-3 flex-wrap">
               <Link
-                href="/find-us"
+                href="/#newsletter"
                 className="chonk-btn chonk-btn-primary chonk-btn-lg"
               >
-                Find a Stall
+                Get on the list
               </Link>
               <Link
                 href="/menu"
                 className="chonk-btn chonk-btn-outline chonk-btn-lg"
               >
-                See the Menu
+                See the menu
               </Link>
             </div>
 
             <div className="flex gap-2.5 flex-wrap mt-2">
-              <span className="proof-pill">60g Whey Isolate</span>
+              <span className="proof-pill">50g Whey Isolate</span>
               <span className="proof-pill">No Added Sugar</span>
               <span className="proof-pill">Real Fruit</span>
-              <span className="proof-pill">Made-to-Order</span>
+              <span className="proof-pill">Made to Order</span>
             </div>
           </div>
 
@@ -89,12 +80,12 @@ export default function Hero() {
             style={{ aspectRatio: "4 / 5", maxWidth: 560 }}
           >
             <div
-              className="absolute inset-0 overflow-hidden bg-milk"
-              style={{ borderRadius: 24 }}
+              className="absolute inset-0 overflow-hidden"
+              style={{ borderRadius: 24, background: "#000000" }}
             >
               <iframe
                 src="/chonk-hero.html"
-                title="Chonk 3D cup, rotating"
+                title="chonk. 3D cup, rotating"
                 className="absolute inset-0 w-full h-full border-0"
                 loading="eager"
                 scrolling="no"
@@ -102,7 +93,7 @@ export default function Hero() {
               />
             </div>
 
-            {/* Rotating beat pill — top-right (previously the 60g sticker spot) */}
+            {/* Rotating beat pill — top-right */}
             <div
               className="absolute whitespace-nowrap overflow-hidden"
               style={{

@@ -1,27 +1,27 @@
 const stats = [
   {
-    big: "60",
+    big: "50",
     unit: "g",
     label: "Protein",
-    sub: "per serve (Raw, Choc Chonk, Chonky Monkey)",
+    sub: "whey-forward, per chonk — Raw, Choc Chonk, Chonky Monkey.",
   },
   {
-    big: "0",
-    unit: "g",
-    label: "Added sugar",
-    sub: "sweetened with honey + real fruit only",
-  },
-  {
-    big: "3×",
+    big: "9",
     unit: "",
-    label: "Up&Go's protein",
-    sub: "Up&Go has 17g. You do the maths.",
+    label: "Essential amino acids",
+    sub: "every EAA your body can’t make. Whey isolate is a complete protein — no gaps, every chonk.",
   },
   {
-    big: "≈4",
-    unit: "min",
-    label: "To blend",
-    sub: "fresh-made while you stretch",
+    big: "8",
+    unit: "",
+    label: "Key micronutrients",
+    sub: "B6, B12, vitamin C, calcium, magnesium, potassium, manganese, riboflavin — from real food, not a fortification spray.",
+  },
+  {
+    big: "5",
+    unit: "",
+    label: "Natural ingredients",
+    sub: "whole milk, greek yogurt, raw honey, raw cacao, real fruit.",
   },
 ];
 
@@ -36,7 +36,7 @@ export default function ProofBar() {
           >
             The receipts
           </span>
-          <h2 className="text-section">No one comes close.</h2>
+          <h2 className="text-section">All the right numbers.</h2>
         </header>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map((s) => (

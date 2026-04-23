@@ -9,7 +9,7 @@ import {
 export const metadata: Metadata = {
   title: "References",
   description:
-    "Every nutrition claim Chonk makes, cited. 15 peer-reviewed sources across 7 ingredient families.",
+    "Every nutrition claim chonk. makes, cited. 15 peer-reviewed sources across 7 ingredient families.",
 };
 
 function slugify(s: string) {
@@ -183,7 +183,8 @@ export default function ReferencesPage() {
                   >
                     science@chonkshakes.com.au
                   </a>
-                  .
+                  . Build in public is a core value — if we&apos;re wrong,
+                  we want to know.
                 </p>
               </div>
             </div>

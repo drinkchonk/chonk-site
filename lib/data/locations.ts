@@ -10,38 +10,39 @@ export type Location = {
   pin?: { x: number; y: number; eta?: string };
 };
 
+/**
+ * Pre-launch: no stalls are open. Everything is "coming-soon".
+ * Addresses and ETAs are placeholders — the list gets the real drop first.
+ */
 export const locations: Location[] = [
   {
-    id: "osborne-park",
-    name: "Chonk Osborne Park",
-    suburb: "Osborne Park",
-    address: "Stirling Leisure Centres — Osborne Park, WA 6017",
-    status: "open",
-    hours: [
-      { day: "Mon–Fri", time: "6:00am — 8:00pm" },
-      { day: "Sat", time: "7:00am — 5:00pm" },
-      { day: "Sun", time: "8:00am — 4:00pm" },
-    ],
-    pin: { x: 38, y: 32 },
-  },
-  {
-    id: "perth-cbd",
-    name: "Chonk Perth CBD",
-    suburb: "Perth CBD",
-    address: "Forrest Pl, Perth WA 6000",
+    id: "perth-first-popup",
+    name: "chonk. — First pop-up",
+    suburb: "Perth · First pop-up",
+    address: "Location dropping to the list first. Markets, gyms, studios — where Perth actually trains.",
     status: "coming-soon",
     hours: [],
     comingSoon: true,
-    pin: { x: 52, y: 56, eta: "Q2 2026" },
+    pin: { x: 52, y: 50, eta: "Soon" },
   },
   {
-    id: "leederville",
-    name: "Chonk Leederville",
-    suburb: "Leederville",
-    address: "Oxford St, Leederville WA 6007",
+    id: "perth-north",
+    name: "chonk. — Northern suburbs",
+    suburb: "Northern suburbs",
+    address: "Pop-up #2 in the build. Details to the list.",
     status: "coming-soon",
     hours: [],
     comingSoon: true,
-    pin: { x: 45, y: 44, eta: "Q3 2026" },
+    pin: { x: 38, y: 32, eta: "Later" },
+  },
+  {
+    id: "perth-west",
+    name: "chonk. — Coastal",
+    suburb: "Coastal",
+    address: "Pop-up #3 in the build. Details to the list.",
+    status: "coming-soon",
+    hours: [],
+    comingSoon: true,
+    pin: { x: 45, y: 44, eta: "Later" },
   },
 ];

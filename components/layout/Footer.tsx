@@ -56,8 +56,8 @@ export default function Footer() {
           <div>
             <ChonkLogo variant="light" size="md" />
             <p className="mt-4 text-muted max-w-[320px] text-sm leading-relaxed">
-              Australia&apos;s highest-protein smoothie. Fresh-blended,
-              made-to-order, Perth-born.
+              The high-protein smoothie for people chasing something. Whey-forward,
+              made to order, Perth-born. 50 grams closer.
             </p>
             <div className="flex gap-2.5 mt-5">
               {socialLinks.map((s) => (
@@ -111,10 +111,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
-            <div className="text-eyebrow text-muted mb-4">Newsletter</div>
+          <div id="newsletter" className="scroll-mt-24">
+            <div className="text-eyebrow text-muted mb-4">
+              Get on the list
+            </div>
             <p className="text-sm text-muted mb-3">
-              New flavours, new stalls, no fluff.
+              Subscribe for the most up-to-date nutrition and training
+              information — and to know the moment the first chonk. pop-up is
+              pouring. 50 grams closer, straight to your inbox.
             </p>
             <NewsletterForm />
           </div>
@@ -123,7 +127,7 @@ export default function Footer() {
         <div className="hairline" />
 
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 pt-8 text-xs text-muted">
-          <div>© Chonk Shakes {year}. Perth, Western Australia.</div>
+          <div>© chonk. {year}. Perth, Western Australia. Launching soon.</div>
           <div className="flex gap-5">
             <Link href="#" className="hover:text-ink transition-colors">
               Privacy

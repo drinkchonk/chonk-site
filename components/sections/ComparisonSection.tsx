@@ -1,147 +1,305 @@
-const rows = [
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+type Bar = {
+  label: string;
+  sub?: string;
+  grams: number;
+  highlight?: boolean;
+  ceiling?: boolean;
+};
+
+/**
+ * Protein gap chart — horizontal bar reveal, scroll-triggered.
+ *
+ * Category labels are deliberately generic (no competitor names) per the
+ * positioning doc: the numbers do the work, we don't attack operators by
+ * name. The chonk. bar visually extends past the "retail ceiling" marker
+ * to make the +43% gap land without having to spell it out twice.
+ */
+const bars: Bar[] = [
   {
-    name: "Chonk — Raw",
-    protein: 60,
-    sugar: 0,
-    real: "Yes",
-    price: "$12",
-    highlight: true,
+    label: "Supermarket breakfast drink",
+    sub: "mass-market default",
+    grams: 12,
   },
-  { name: "Up&Go Protein", protein: 17, sugar: 13, real: "No", price: "$4" },
-  { name: "Maxibon Protein Bar", protein: 20, sugar: 2, real: "No", price: "$5" },
-  { name: "YoPro Yoghurt 250g", protein: 25, sugar: 4, real: "No", price: "$5" },
   {
-    name: "Servo protein shake (RTD)",
-    protein: 30,
-    sugar: 5,
-    real: "No",
-    price: "$7",
+    label: "Category-average protein RTD",
+    sub: "what's in the fridge",
+    grams: 29,
+  },
+  {
+    label: "Fresh-made smoothie ceiling",
+    sub: "national chain top-end",
+    grams: 33,
+  },
+  {
+    label: "Premium supermarket RTD",
+    sub: "the retail ceiling",
+    grams: 35,
+    ceiling: true,
+  },
+  {
+    label: "chonk.",
+    sub: "whey-forward, made to order",
+    grams: 50,
+    highlight: true,
   },
 ];
 
-/** Head-to-head table with a side panel showing the Up&Go vs Chonk gap. */
+const MAX = 55; // visual axis — leaves chonk breathing room past 50
+
 export default function ComparisonSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [animate, setAnimate] = useState(false);
+  const [displayGrams, setDisplayGrams] = useState<number[]>(
+    () => bars.map(() => 0)
+  );
+
+  // Trigger the reveal once the section is on screen.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (prefersReduced) {
+      setAnimate(true);
+      setDisplayGrams(bars.map((b) => b.grams));
+      return;
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setAnimate(true);
+            obs.disconnect();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // rAF-driven count-up, staggered per bar.
+  useEffect(() => {
+    if (!animate) return;
+    const duration = 1200; // ms per bar
+    const stagger = 140; // ms between bars
+    let rafId: number | null = null;
+
+    const starts = bars.map((_, i) => performance.now() + i * stagger);
+
+    const tick = (now: number) => {
+      const next = bars.map((b, i) => {
+        const t = Math.max(0, Math.min(1, (now - starts[i]) / duration));
+        const eased = 1 - Math.pow(1 - t, 3); // cubic ease-out
+        return Math.round(b.grams * eased);
+      });
+      setDisplayGrams(next);
+
+      const allDone = bars.every((b, i) => next[i] === b.grams);
+      if (!allDone) rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [animate]);
+
   return (
     <section
+      ref={sectionRef}
       style={{
         background: "var(--color-milk)",
         paddingBlock: 128,
       }}
-      aria-label="How Chonk compares to supermarket protein"
+      aria-label="How chonk. compares on protein"
     >
       <div className="container-site">
-        <div className="grid gap-14 lg:grid-cols-[1fr_1.4fr] items-center">
+        <div className="grid gap-14 lg:grid-cols-[1fr_1.6fr] items-start">
+          {/* LEFT — copy */}
           <div>
             <span
               className="text-eyebrow"
               style={{ color: "var(--color-proof-fg)" }}
             >
-              The proof
+              The gap
             </span>
             <h2 className="text-section mt-3">
-              Up&Go has 17g.
+              No one&apos;s in our
               <br />
-              <span style={{ color: "var(--color-pink)" }}>
-                Chonk has 60g.
-              </span>
+              <span style={{ color: "var(--color-pink)" }}>weight class.</span>
             </h2>
             <p
-              className="text-pretty leading-[1.6] mt-5 max-w-[420px]"
+              className="text-pretty leading-[1.65] mt-5 max-w-[440px]"
               style={{ color: "var(--color-muted)", fontSize: 17 }}
             >
-              You do the maths. A Chonk hits the protein of three
-              convenience-store &ldquo;high-protein&rdquo; products at less
-              than the combined price — and without the sugar, fillers, or
-              sweeteners.
+              We built a chonk around whey isolate — the gold-standard protein
+              for muscle recovery and synthesis. Then we stacked it at 50g per
+              cup. That&apos;s +43% above the best supermarket protein drink
+              and +72% above the nearest fresh-made smoothie.
             </p>
-
-            <div
-              className="mt-7"
-              style={{
-                padding: "20px 24px",
-                borderRadius: "var(--radius-card-lg)",
-                background: "var(--color-cream)",
-                border: "1px solid var(--color-hairline)",
-              }}
+            <p
+              className="text-pretty leading-[1.65] mt-4 max-w-[440px]"
+              style={{ color: "var(--color-muted)", fontSize: 15 }}
             >
-              <div
-                className="text-eyebrow mb-2.5"
-                style={{ color: "var(--color-muted)" }}
-              >
-                Protein gap vs #1 supermarket seller
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="pbar">
-                    <div
-                      className="fill"
-                      data-target="28"
-                      style={{ width: "28%" }}
-                    />
-                  </div>
-                  <div
-                    className="flex justify-between mt-2 text-xs"
-                    style={{ color: "var(--color-muted)" }}
-                  >
-                    <span>Up&Go</span>
-                    <span>17g</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 mt-4">
-                <div className="flex-1">
-                  <div className="pbar">
-                    <div
-                      className="fill"
-                      data-target="100"
-                      style={{ width: "100%" }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs">
-                    <span style={{ fontWeight: 600 }}>Chonk Raw</span>
-                    <span style={{ fontWeight: 600 }}>60g</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              Not a gimmick. A recipe fact. You do the maths.
+            </p>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table className="compare">
-              <thead>
-                <tr>
-                  <th aria-label="Product" />
-                  <th style={{ textAlign: "right" }}>Protein</th>
-                  <th style={{ textAlign: "right" }}>Sugar</th>
-                  <th style={{ textAlign: "right" }}>Real food</th>
-                  <th style={{ textAlign: "right" }}>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.name} className={r.highlight ? "highlight" : ""}>
-                    <td style={{ fontWeight: 600 }}>{r.name}</td>
-                    <td className="num" style={{ textAlign: "right" }}>
-                      {r.protein}g
-                    </td>
-                    <td
-                      className="num"
+          {/* RIGHT — chart */}
+          <div
+            style={{
+              background: "var(--color-cream)",
+              border: "1px solid var(--color-hairline)",
+              borderRadius: "var(--radius-card-lg)",
+              padding: "28px clamp(20px, 3vw, 36px)",
+            }}
+          >
+            <div
+              className="text-eyebrow mb-6"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Protein per serve · grams
+            </div>
+
+            <div className="flex flex-col gap-5">
+              {bars.map((bar, i) => {
+                const widthPct = animate ? (bar.grams / MAX) * 100 : 0;
+                const accent = bar.highlight
+                  ? "var(--color-pink)"
+                  : "rgba(254, 246, 236, 0.22)";
+                const labelColor = bar.highlight
+                  ? "var(--color-ink)"
+                  : "var(--color-muted)";
+                const gramsColor = bar.highlight
+                  ? "var(--color-pink)"
+                  : "var(--color-ink)";
+
+                return (
+                  <div key={bar.label} className="flex flex-col gap-2">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <div
+                        className="font-body"
+                        style={{
+                          color: labelColor,
+                          fontSize: bar.highlight ? 16 : 14,
+                          fontWeight: bar.highlight ? 700 : 500,
+                          letterSpacing: bar.highlight ? "-0.01em" : 0,
+                        }}
+                      >
+                        {bar.label}
+                        {bar.sub && (
+                          <span
+                            style={{
+                              marginLeft: 8,
+                              fontSize: 12,
+                              color: "var(--color-muted)",
+                              fontWeight: 500,
+                              letterSpacing: "0.02em",
+                            }}
+                          >
+                            · {bar.sub}
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className="font-display"
+                        style={{
+                          fontWeight: 900,
+                          fontVariationSettings: '"SOFT" 100, "WONK" 1',
+                          fontSize: bar.highlight ? 32 : 22,
+                          letterSpacing: "-0.02em",
+                          color: gramsColor,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {displayGrams[i]}
+                        <span
+                          style={{
+                            fontSize: "0.45em",
+                            marginLeft: 2,
+                            color: bar.highlight
+                              ? "var(--color-ink)"
+                              : "var(--color-muted)",
+                          }}
+                        >
+                          g
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
                       style={{
-                        textAlign: "right",
-                        color:
-                          r.sugar === 0
-                            ? "var(--color-proof-fg)"
-                            : undefined,
+                        position: "relative",
+                        height: bar.highlight ? 18 : 12,
+                        borderRadius: 999,
+                        background: "rgba(254, 246, 236, 0.05)",
+                        overflow: "visible",
                       }}
                     >
-                      {r.sugar}g
-                    </td>
-                    <td style={{ textAlign: "right" }}>{r.real}</td>
-                    <td style={{ textAlign: "right" }}>{r.price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div
+                        aria-hidden
+                        style={{
+                          position: "absolute",
+                          inset: "0 auto 0 0",
+                          width: `${widthPct}%`,
+                          borderRadius: 999,
+                          background: bar.highlight
+                            ? "linear-gradient(90deg, var(--color-pink), #ffbce6)"
+                            : accent,
+                          transition:
+                            "width 1100ms cubic-bezier(.2, .75, .25, 1)",
+                          boxShadow: bar.highlight
+                            ? "0 0 0 2px rgba(255,216,243,0.12)"
+                            : "none",
+                        }}
+                      />
+                      {bar.ceiling && (
+                        <div
+                          aria-hidden
+                          style={{
+                            position: "absolute",
+                            top: -6,
+                            bottom: -6,
+                            left: `${(35 / MAX) * 100}%`,
+                            width: 2,
+                            background: "rgba(254, 246, 236, 0.35)",
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div
+              className="mt-7 pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              style={{ borderTop: "1px solid var(--color-hairline)" }}
+            >
+              <div
+                className="text-eyebrow"
+                style={{ color: "var(--color-proof-fg)" }}
+              >
+                50 grams closer.
+              </div>
+              <div
+                className="text-[13px]"
+                style={{ color: "var(--color-muted)" }}
+              >
+                Figures represent category ceilings and averages across
+                Australian retail and fresh-made options.
+              </div>
+            </div>
           </div>
         </div>
       </div>

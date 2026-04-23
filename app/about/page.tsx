@@ -5,36 +5,36 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Chonk was started in a Perth gym carpark with a blender and a grudge against sugar-water protein.",
+    "chonk. is a high-protein smoothie built by two mates from Perth. 50 grams of whey-forward protein, zero compromise on taste. Launching soon.",
 };
 
 const values = [
   {
     n: "01",
-    title: "Real food, not fortified water.",
-    body: "Whey isolate plus whole ingredients — banana, cacao, honey, peanut butter. If we can\u2019t pronounce it, it doesn\u2019t go in.",
+    title: "Delicious is non-negotiable.",
+    body: "If a chonk tastes like a supplement, it’s failed. Taste is the reason anyone comes back. We don’t ship what we wouldn’t drink.",
   },
   {
     n: "02",
-    title: "Receipts on every claim.",
-    body: "Every nutrition line on this site traces back to a peer-reviewed source. Fifteen of them. Linked inline.",
+    title: "Substance under the style.",
+    body: "Every claim we make is measurable on the nutrition label. No spin. 50g of protein is the recipe, not the marketing.",
   },
   {
     n: "03",
-    title: "Made to order. Full stop.",
-    body: "Nothing pre-blended, nothing sat in a fridge for six days. Four minutes, start to finish, while you stand there.",
+    title: "Whey-forward. Real food.",
+    body: "Whey isolate — the gold standard for muscle recovery — plus whole ingredients you can pronounce. No fillers, no gums, no hidden sugars.",
   },
   {
     n: "04",
-    title: "Built for the set after the set.",
-    body: "This is post-gym fuel. Designed for people who actually train — not a wellness accessory.",
+    title: "Made to order. Always.",
+    body: "Nothing pre-blended. Nothing sitting in a fridge. Fresh, in front of you, every time. That’s the ritual.",
   },
 ];
 
 const stats = [
-  { v: "2024", k: "First shake poured" },
-  { v: "11,400+", k: "Shakes blended to date" },
-  { v: "1", k: "Stall open · 2 on the way" },
+  { v: "50g", k: "Protein per chonk" },
+  { v: "+43%", k: "Above the retail ceiling" },
+  { v: "Soon", k: "First pop-up · Perth" },
 ];
 
 export default function AboutPage() {
@@ -49,19 +49,20 @@ export default function AboutPage() {
             The story
           </span>
           <h1 className="text-hero mt-3 max-w-[900px]">
-            We got sick of sugar-water
+            Two mates. One missing
             <br />
             <span style={{ color: "var(--color-pink)" }}>
-              pretending to be protein.
+              shake.
             </span>
           </h1>
           <p
-            className="leading-[1.6] max-w-[620px] mt-5"
+            className="leading-[1.6] max-w-[640px] mt-5"
             style={{ color: "var(--color-muted)", fontSize: 17 }}
           >
-            Chonk started in a gym carpark in Osborne Park with a blender, a
-            grudge, and a stubborn belief that post-workout nutrition should
-            taste like something you actually want.
+            We&apos;re two mates from Perth. We train, we cook, we care about
+            this stuff. And no matter what we tried, we could never hit a
+            proper protein number without choking down something that tasted
+            like chalk or half a dessert. So we built one.
           </p>
         </div>
       </section>
@@ -79,7 +80,7 @@ export default function AboutPage() {
           >
             <Image
               src="/images/hero-cup.jpg"
-              alt="Three Chonk cups with fresh fruit"
+              alt="chonk. cups with fresh fruit"
               fill
               sizes="(max-width: 960px) 100vw, 1200px"
               style={{ objectFit: "cover" }}
@@ -159,7 +160,7 @@ export default function AboutPage() {
             >
               <Image
                 src="/images/hero-cup.jpg"
-                alt="Jack Mahoney, founder of Chonk"
+                alt="chonk. — two mates from Perth"
                 fill
                 sizes="(max-width: 960px) 100vw, 600px"
                 style={{ objectFit: "cover" }}
@@ -170,23 +171,31 @@ export default function AboutPage() {
                 className="text-eyebrow"
                 style={{ color: "var(--color-proof-fg)" }}
               >
-                The founder
+                The founders
               </span>
               <h2 className="text-section mt-3">
-                Jack Mahoney,
+                Two mates,
                 <br />
                 <span style={{ color: "var(--color-pink)" }}>
-                  head chonk.
+                  one blender.
                 </span>
               </h2>
               <p
                 className="leading-[1.65] mt-5"
                 style={{ color: "var(--color-muted)", fontSize: 17 }}
               >
-                Trained six days a week, hated every post-workout option. Ran
-                the numbers on the supermarket shelf: 17g protein, 13g sugar,
-                $4. Did the maths three more times. Opened the first Chonk
-                stall eight months later.
+                We&apos;re building chonk. in public. Recipe tests, compliance,
+                supplier calls, pop-up planning — all of it. No outside funding.
+                Just two people who got sick of the choice between sugar-water
+                smoothies and chalky shaker bottles. And who think Perth
+                deserves better.
+              </p>
+              <p
+                className="leading-[1.65] mt-4"
+                style={{ color: "var(--color-muted)", fontSize: 17 }}
+              >
+                First pop-up is coming. Get on the list and we&apos;ll tell you
+                where and when, first.
               </p>
 
               <div
@@ -221,45 +230,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section
-        className="section-padding"
-        style={{ background: "var(--color-milk)" }}
-        aria-label="Press"
-      >
-        <div className="container-site">
-          <div className="max-w-[900px] mx-auto text-center">
-            <span
-              className="text-eyebrow"
-              style={{ color: "var(--color-proof-fg)" }}
-            >
-              On the record
-            </span>
-            <blockquote
-              className="text-hero mt-4"
-              style={{ fontSize: "clamp(32px, 4vw, 54px)" }}
-            >
-              &ldquo;The smoothie bar every gym-goer in Australia was
-              missing.&rdquo;
-            </blockquote>
-            <p
-              className="mt-5"
-              style={{ color: "var(--color-muted)", fontSize: 15 }}
-            >
-              — Perth Now, Food & Fitness, 2025
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section className="section-padding">
         <div className="container-site text-center">
-          <h2 className="text-section mb-8">Come try one.</h2>
+          <h2 className="text-section mb-8">Be there for the first pour.</h2>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
-              href="/find-us"
+              href="/#newsletter"
               className="chonk-btn chonk-btn-primary chonk-btn-lg"
             >
-              Find a Stall
+              Get on the list
             </Link>
             <Link
               href="/menu"

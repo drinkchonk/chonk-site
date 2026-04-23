@@ -9,6 +9,7 @@ import ChonkLogo from "@/components/ui/ChonkLogo";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
+  { href: "/build", label: "Build" },
   { href: "/references", label: "Science" },
   { href: "/find-us", label: "Find Us" },
   { href: "/about", label: "About" },
@@ -39,7 +40,7 @@ export default function Header() {
         className={cn(
           "sticky top-0 inset-x-0 z-50",
           "border-b border-[var(--color-hairline)]",
-          "bg-[rgba(14,12,13,0.85)] backdrop-blur-md"
+          "bg-[#F2B8CC]"
         )}
       >
         <div className="container-site flex h-[72px] items-center justify-between">
@@ -49,7 +50,7 @@ export default function Header() {
             onClick={() => setMenuOpen(false)}
             className="flex items-center"
           >
-            <ChonkLogo variant="light" size="sm" />
+            <ChonkLogo variant="dark-splash" size="sm" />
           </Link>
 
           <nav
@@ -64,8 +65,9 @@ export default function Header() {
                   href={link.href}
                   className={cn(
                     "font-body text-sm font-medium transition-colors duration-150 relative",
-                    active ? "text-ink" : "text-ink/70 hover:text-ink"
+                    "text-black"
                   )}
+                  style={{ color: "#000000" }}
                 >
                   {link.label}
                   {active && (
@@ -81,10 +83,14 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/find-us"
+              href="/#newsletter"
               className="chonk-btn chonk-btn-primary chonk-btn-sm hidden md:inline-flex"
+              style={{
+                border: "2px solid #000000",
+                color: "#000000",
+              }}
             >
-              Find a Stall
+              Get on the list
             </Link>
 
             <button
@@ -92,23 +98,23 @@ export default function Header() {
               className="flex md:hidden flex-col gap-1.5 p-2"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
+              aria-expanded={menuOpen ? "true" : "false"}
             >
               <span
                 className={cn(
-                  "block h-0.5 w-6 bg-ink transition-all duration-200",
+                  "block h-0.5 w-6 bg-black transition-all duration-200",
                   menuOpen && "translate-y-2 rotate-45"
                 )}
               />
               <span
                 className={cn(
-                  "block h-0.5 w-6 bg-ink transition-all duration-200",
+                  "block h-0.5 w-6 bg-black transition-all duration-200",
                   menuOpen && "opacity-0"
                 )}
               />
               <span
                 className={cn(
-                  "block h-0.5 w-6 bg-ink transition-all duration-200",
+                  "block h-0.5 w-6 bg-black transition-all duration-200",
                   menuOpen && "-translate-y-2 -rotate-45"
                 )}
               />
@@ -124,7 +130,7 @@ export default function Header() {
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
         )}
-        aria-hidden={!menuOpen}
+        aria-hidden={menuOpen ? "false" : "true"}
       >
         <nav
           className="container-site flex flex-col gap-2 pt-8"
@@ -142,11 +148,11 @@ export default function Header() {
           ))}
           <div className="pt-6">
             <Link
-              href="/find-us"
+              href="/#newsletter"
               onClick={() => setMenuOpen(false)}
               className="chonk-btn chonk-btn-primary chonk-btn-lg w-full"
             >
-              Find a Stall
+              Get on the list
             </Link>
           </div>
         </nav>

@@ -6,7 +6,7 @@ type MiniCupProps = {
 
 /** Stylised SVG cup used inside flavour cards. */
 export default function MiniCup({
-  bg = "#FFD8F3",
+  bg = "#F2B8CC",
   fg = "#1A1614",
   className,
 }: MiniCupProps) {

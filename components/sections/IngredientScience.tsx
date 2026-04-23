@@ -32,9 +32,9 @@ export default function IngredientScience() {
             className="text-pretty leading-[1.6] max-w-[480px]"
             style={{ color: "var(--color-muted)", fontSize: 17 }}
           >
-            We picked eight ingredients. Each one solves a specific problem —
+            We hand picked our ingredients. Each one does a specific job —
             protein synthesis, glycogen recovery, vasodilation, electrolyte
-            balance. Not vibes. Peer-reviewed receipts.
+            balance. Peer-reviewed. No vibes, no fillers, no guessing.
           </p>
         </div>
 
@@ -99,7 +99,7 @@ export default function IngredientScience() {
             </div>
             <div style={{ fontSize: 17 }}>
               All references listed, all claims sourced. Don&apos;t take our
-              word for it.
+              word for it — check the papers.
             </div>
           </div>
           <Link href="/references" className="chonk-btn chonk-btn-outline">

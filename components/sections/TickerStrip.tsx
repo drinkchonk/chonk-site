@@ -1,12 +1,12 @@
 const items = [
-  "60g protein",
-  "Real fruit",
+  "50g protein",
   "Whey isolate",
+  "Real fruit",
   "No added sugar",
-  "Perth-made",
+  "Zero fillers",
   "Made to order",
-  "Zero gums",
-  "Zero artificial colours",
+  "Perth, coming soon",
+  "50 grams closer",
 ];
 
 /** Pink marquee between hero and proof-bar. Duplicated item list so the

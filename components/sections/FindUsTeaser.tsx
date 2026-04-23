@@ -1,100 +1,99 @@
-import { locations } from "@/lib/data/locations";
-import { cn } from "@/lib/utils";
-
 export default function FindUsTeaser() {
   return (
     <section
       id="find-us"
       className="section-padding"
       style={{ background: "var(--color-milk)" }}
-      aria-label="Find us teaser"
+      aria-label="Where to find chonk."
     >
       <div className="container-site">
-        <header className="max-w-[720px] mb-14 flex flex-col gap-3">
-          <span
-            className="text-eyebrow"
-            style={{ color: "var(--color-proof-fg)" }}
-          >
-            Where to get one
-          </span>
-          <h2 className="text-section">Pull up.</h2>
-        </header>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {locations.map((loc) => (
-            <div
-              key={loc.id}
-              className={cn("loc-card", loc.status === "open" && "open")}
+        <div className="grid gap-12 md:grid-cols-[1fr_1fr] items-center">
+          <div>
+            <span
+              className="text-eyebrow"
+              style={{ color: "var(--color-proof-fg)" }}
             >
-              <div className="flex items-center gap-2">
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background:
-                      loc.status === "open"
-                        ? "var(--color-proof-fg)"
-                        : "var(--color-muted)",
-                  }}
-                />
-                <span
-                  className="text-eyebrow"
-                  style={{
-                    color:
-                      loc.status === "open"
-                        ? "var(--color-proof-fg)"
-                        : "var(--color-muted)",
-                  }}
-                >
-                  {loc.status === "open" ? "Open now" : "Coming soon"}
-                </span>
-              </div>
-              <h3 style={{ fontSize: 26, letterSpacing: "-0.02em" }}>
-                {loc.suburb}
-              </h3>
-              <p
-                className="text-sm leading-[1.5]"
-                style={{ color: "var(--color-muted)" }}
+              Where to find us
+            </span>
+            <h2 className="text-section mt-3">
+              First pop-up,
+              <br />
+              <span style={{ color: "var(--color-pink)" }}>
+                dropping soon.
+              </span>
+            </h2>
+            <p
+              className="text-pretty leading-[1.65] mt-5 max-w-[460px]"
+              style={{ color: "var(--color-muted)", fontSize: 17 }}
+            >
+              We&apos;re prepping the first chonk. pop-up in Perth right now —
+              recipe, compliance, cup. Get on the list and we&apos;ll tell you
+              the moment it&apos;s pouring.
+            </p>
+            <div className="flex gap-3 flex-wrap mt-7">
+              <a
+                href="/#newsletter"
+                className="chonk-btn chonk-btn-primary"
               >
-                {loc.address}
-              </p>
-              {loc.hours.length > 0 ? (
-                <div
-                  className="flex flex-col gap-1.5 text-[13px] mt-2 pt-4"
-                  style={{ borderTop: "1px solid var(--color-hairline)" }}
-                >
-                  {loc.hours.map((h) => (
-                    <div
-                      key={h.day}
-                      className="flex justify-between"
-                    >
-                      <span style={{ color: "var(--color-muted)" }}>
-                        {h.day}
-                      </span>
-                      <span>{h.time}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div
-                  className="text-[13px] mt-2 pt-4"
-                  style={{
-                    color: "var(--color-muted)",
-                    borderTop: "1px solid var(--color-hairline)",
-                  }}
-                >
-                  Opening {loc.pin?.eta ?? "2026"} · Get notified below
-                </div>
-              )}
-              <button
-                type="button"
-                className="chonk-btn chonk-btn-ghost chonk-btn-sm self-start mt-2"
-                style={{ padding: "8px 0" }}
+                Get on the list
+              </a>
+              <a
+                href="/find-us"
+                className="chonk-btn chonk-btn-outline"
               >
-                {loc.status === "open" ? "Get directions →" : "Notify me →"}
-              </button>
+                Wholesale &amp; venues
+              </a>
             </div>
-          ))}
+          </div>
+
+          <div
+            className="loc-card"
+            style={{ borderColor: "rgba(159, 211, 165, 0.25)" }}
+          >
+            <div className="flex items-center gap-2">
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "var(--color-proof-fg)",
+                }}
+              />
+              <span
+                className="text-eyebrow"
+                style={{ color: "var(--color-proof-fg)" }}
+              >
+                Status · Pre-launch
+              </span>
+            </div>
+            <h3 style={{ fontSize: 26, letterSpacing: "-0.02em" }}>
+              Perth, WA
+            </h3>
+            <p
+              className="text-sm leading-[1.5]"
+              style={{ color: "var(--color-muted)" }}
+            >
+              Location, date, and pour details dropping to the list first.
+              Markets, gyms, studios — where Perth actually trains.
+            </p>
+            <div
+              className="flex flex-col gap-1.5 text-[13px] mt-2 pt-4"
+              style={{ borderTop: "1px solid var(--color-hairline)" }}
+            >
+              <div className="flex justify-between">
+                <span style={{ color: "var(--color-muted)" }}>Recipe</span>
+                <span>Locked</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--color-muted)" }}>Compliance</span>
+                <span>In progress</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--color-muted)" }}>First pour</span>
+                <span style={{ color: "var(--color-proof-fg)" }}>Soon</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

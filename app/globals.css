@@ -1,4 +1,5 @@
 @import "tailwindcss";
+/* theme revision: inverse-v2 (darker pink) */
 
 /* ──────────────────────────────────────────────────────────────
    Chonk design tokens (Tailwind v4 @theme inline syntax)
@@ -8,22 +9,27 @@
    Fraunces (SOFT + WONK axes) provides the wonky display face.
    ────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-cream: #0E0C0D;
-  --color-milk: #1A1719;
-  --color-pink: #FFD8F3;
-  --color-ink: #FEF6EC;
+  /* Inverted from the "dark theme experiment" — body surface returns
+     to warm cream, body text to near-black. HeroLab keeps its own
+     inline #0a0809 so the Chonkiverse universe stays dark while
+     everything from the lineup section downward flips to light. */
+  --color-cream: #FEF6EC;
+  --color-milk: #F5EDD8;
+  --color-pink: #F2B8CC;
+  --color-ink: #0E0C0D;
   --color-proof: #3A5A40;
-  --color-proof-fg: #9FD3A5;
+  --color-proof-fg: #3A5A40;
 
   /* Flavour palette (used by product cards) */
   --color-sage: #C8E8C0;
   --color-cocoa: #6B4423;
   --color-banana: #F4D35E;
 
-  /* Hairlines / muted text */
-  --color-muted: rgba(254, 246, 236, 0.6);
-  --color-hairline: rgba(254, 246, 236, 0.12);
-  --color-hairline-strong: rgba(254, 246, 236, 0.22);
+  /* Hairlines / muted text — now tinted with the dark ink so they
+     read against the light surface. */
+  --color-muted: rgba(14, 12, 13, 0.62);
+  --color-hairline: rgba(14, 12, 13, 0.12);
+  --color-hairline-strong: rgba(14, 12, 13, 0.22);
 
   /* Type families (next/font CSS variables set on <html>) */
   --font-display: var(--font-fraunces), Georgia, serif;
@@ -248,11 +254,13 @@
   .flavour-card .protein-tag {
     display: inline-flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 4px;
     padding: 8px 14px;
     border-radius: 10px;
     font-family: var(--font-display);
     font-variation-settings: "SOFT" 100, "WONK" 1;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .flavour-card .protein-tag b {
     font-size: 26px;

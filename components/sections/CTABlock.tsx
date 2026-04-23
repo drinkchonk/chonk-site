@@ -23,33 +23,33 @@ export default function CTABlock() {
             className="text-hero mx-auto"
             style={{ color: "#1A1614", maxWidth: 820 }}
           >
-            Stop paying gym-fridge prices for supermarket protein.
+            50 grams closer.
           </div>
           <p
             className="mx-auto mt-5"
             style={{
               fontSize: 18,
               color: "rgba(26,22,20,0.7)",
-              maxWidth: 520,
+              maxWidth: 560,
             }}
           >
-            $12. 60g of protein. Fresh-blended. Takes 4 minutes. We&apos;ll
-            remember your order by your second visit.
+            Whey-forward. Real food. Made to order. From $4.50 — up to 50g
+            protein — pouring soon in Perth.
           </p>
           <div className="flex gap-3 justify-center mt-9 flex-wrap">
             <Link
-              href="/find-us"
+              href="/#newsletter"
               className="chonk-btn chonk-btn-lg"
               style={{ background: "#1A1614", color: "var(--color-pink)" }}
             >
-              Find a Stall
+              Get on the list
             </Link>
             <Link
               href="/menu"
               className="chonk-btn chonk-btn-lg"
               style={{ border: "2px solid #1A1614", color: "#1A1614" }}
             >
-              See Menu
+              See the menu
             </Link>
           </div>
         </div>

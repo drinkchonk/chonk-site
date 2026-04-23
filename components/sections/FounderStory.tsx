@@ -15,8 +15,8 @@ export default function FounderStory() {
               }}
             >
               <Image
-                src="/images/product-cup-fruit.jpg"
-                alt="Chonk cup with tropical fruit on warm orange"
+                src="/images/product-cup-solo-clean.jpg"
+                alt="chonk. cup — pink, with lid and straw"
                 width={520}
                 height={650}
                 className="w-full h-full object-cover"
@@ -31,25 +31,40 @@ export default function FounderStory() {
               The story
             </span>
             <h2 className="text-section mt-3">
-              Started in a gym carpark with a blender and a grudge.
+              Two mates.
+              <br />
+              <span style={{ color: "var(--color-pink)" }}>
+                One missing shake.
+              </span>
             </h2>
             <p
               className="text-pretty leading-[1.65] mt-5 max-w-[520px]"
               style={{ color: "var(--color-muted)", fontSize: 17 }}
             >
-              I was paying $8 for &ldquo;protein shakes&rdquo; with 15g of
-              protein and half a cup of sugar. So I built my own. 60g of whey
-              isolate, real banana, raw honey, oat milk, blended in 4 minutes.
-              My mates started asking for them. Then strangers at the gym.
-              Then a stall at the leisure centre.
+              We were just two mates from Perth, who became obsessed with
+              health. But as we became more conscious about what we consume,
+              it became impossible to find food options that aligned with our
+              goals and lifestyle. And no matter what we tried — store-bought
+              drinks, smoothie shops, &ldquo;high-protein&rdquo; bars — we
+              could never hit a proper protein number without choking down
+              something that tasted like chalk or half a dessert, or was
+              filled with substances you can&apos;t pronounce.
             </p>
             <p
               className="text-pretty leading-[1.65] mt-4 max-w-[520px]"
               style={{ color: "var(--color-muted)", fontSize: 17 }}
             >
-              Chonk isn&apos;t wellness. It&apos;s not a lifestyle brand.
-              It&apos;s a protein shake that actually has protein, made by
-              someone who got tired of being ripped off.
+              So we built a chonk around <strong style={{ color: "var(--color-ink)", fontWeight: 600 }}>whey
+              isolate</strong> — the gold-standard protein for muscle recovery
+              and synthesis. Fast-absorbing, complete amino profile,
+              research-backed at the doses athletes actually need. Real whole
+              milk. Real fruit. Real protein. Blended in front of you.
+            </p>
+            <p
+              className="text-pretty leading-[1.65] mt-4 max-w-[520px]"
+              style={{ color: "var(--color-ink)", fontSize: 17, fontWeight: 600 }}
+            >
+              One chonk. 50 grams closer.
             </p>
             <div className="flex items-center gap-4 mt-8">
               <div
@@ -69,13 +84,13 @@ export default function FounderStory() {
                     fontSize: 16,
                   }}
                 >
-                  Jack Mahoney
+                  Two mates, Perth
                 </div>
                 <div
                   className="text-[13px]"
                   style={{ color: "var(--color-muted)" }}
                 >
-                  Founder · Osborne Park · est. 2024
+                  First pop-up · Coming soon
                 </div>
               </div>
             </div>

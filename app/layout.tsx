@@ -21,38 +21,38 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://chonkshakes.com.au"),
   title: {
-    default: "Chonk — Australia's Highest-Protein Smoothie",
-    template: "%s — Chonk",
+    default: "chonk. — 50 grams closer.",
+    template: "%s — chonk.",
   },
   description:
-    "Up to 60g of protein per serve. Real fruit. Whey isolate. No shaker required. Built for people who actually train.",
+    "The high-protein smoothie for people chasing something. 50g of whey-forward protein, real food, zero compromise on taste. Launching soon in Perth.",
   keywords: [
     "protein smoothie",
     "high protein",
-    "gym",
+    "whey isolate",
     "Perth",
     "Australia",
     "post-workout",
     "chonk",
-    "whey isolate",
+    "fresh-made smoothie",
   ],
   openGraph: {
-    title: "Chonk — 60g of protein. Tastes like a reward.",
+    title: "chonk. — 50 grams closer.",
     description:
-      "Australia's highest-protein smoothie bar. Real fruit, whey isolate, no added sugar.",
-    siteName: "Chonk",
+      "The high-protein smoothie for people chasing something. 50g of whey-forward protein, zero compromise on taste. Launching soon in Perth.",
+    siteName: "chonk.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Chonk — 60g of protein. Tastes like a reward.",
+    title: "chonk. — 50 grams closer.",
     description:
-      "Australia's highest-protein smoothie bar. Real fruit, whey isolate, no added sugar.",
+      "The high-protein smoothie for people chasing something. 50g of whey-forward protein, zero compromise on taste. Launching soon in Perth.",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FFD8F3",
+  themeColor: "#F2B8CC",
   width: "device-width",
   initialScale: 1,
 };

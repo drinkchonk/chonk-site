@@ -9,15 +9,17 @@ import FindUsTeaser from "@/components/sections/FindUsTeaser";
 import CTABlock from "@/components/sections/CTABlock";
 
 export const metadata: Metadata = {
-  title: "the chonkiverse",
-  description:
-    "the chonkiverse — a high-protein shake, rendered as its own solar system.",
+  title: "Chonk Shakes — Lab",
+  description: "Experimental cinematic hero prototype. Not a live product page.",
+  robots: { index: false, follow: false },
 };
 
-export default function HomePage() {
+export default function LabPage() {
   return (
     <>
       <HeroLab />
+      {/* Rest of the home page — everything except the spinning-shake
+          <Hero />. */}
       <FlavourGrid />
       <ProofBar />
       <ComparisonSection />
