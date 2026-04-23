@@ -307,9 +307,16 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   const MAX_ANISO = renderer.capabilities.getMaxAnisotropy();
 
   /* ---------- Scene + Camera ---------- */
+  // Mobile pulls the resting camera further back so more of the orbit
+  // of fruit "planets" fits in a narrow viewport. Only the idle stage
+  // (p0) is affected — once scroll kicks the camera into the bird's-eye
+  // lift, the later keyframes take over.
+  const IS_MOBILE = window.matchMedia('(max-width: 767px)').matches;
+  const IDLE_CAM_Z = IS_MOBILE ? 19.0 : 13.0;
+
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 0.7, 13.0);
+  camera.position.set(0, 0.7, IDLE_CAM_Z);
   camera.lookAt(0, 0, 0);
 
   // Persistent off-axis tilt so the shake always reads at the reference
@@ -2115,7 +2122,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   // tiny Z offset in the look target avoids the degenerate lookAt case
   // of "up axis parallel to view direction."
   const K = {
-    p0: { pos: new THREE.Vector3(0,             0.70, 13.0), look: new THREE.Vector3(0,            -0.40,         0),             fov: BASE_FOV  },
+    p0: { pos: new THREE.Vector3(0,             0.70, IDLE_CAM_Z), look: new THREE.Vector3(0,            -0.40,         0),             fov: BASE_FOV  },
     p1: { pos: new THREE.Vector3(0,            14.0,  0.1),  look: new THREE.Vector3(0,            -0.35,         0.05),          fov: WIDE_FOV  },
     p2: { pos: new THREE.Vector3(STRAW_TOP_X,   5.2,  STRAW_TOP_Z), look: new THREE.Vector3(STRAW_TOP_X, STRAW_TOP_Y, STRAW_TOP_Z), fov: 28        },
     p3: { pos: new THREE.Vector3(STRAW_TOP_X,   0.6,  STRAW_TOP_Z), look: new THREE.Vector3(STRAW_TOP_X, -2.0,       STRAW_TOP_Z), fov: TIGHT_FOV },
