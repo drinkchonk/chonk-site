@@ -93,7 +93,7 @@ export function HeroLab() {
           ref={titleRef}
           className="pointer-events-none absolute z-10"
           style={{
-            top: "22vh",
+            top: "14vh",
             left: "6vw",
             margin: 0,
             color: "#F2B8CC",
