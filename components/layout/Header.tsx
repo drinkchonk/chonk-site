@@ -9,7 +9,6 @@ import ChonkLogo from "@/components/ui/ChonkLogo";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
-  { href: "/build", label: "Build" },
   { href: "/references", label: "Science" },
   { href: "/find-us", label: "Find Us" },
   { href: "/about", label: "About" },

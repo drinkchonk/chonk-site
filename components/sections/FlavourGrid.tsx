@@ -67,11 +67,8 @@ export default function FlavourGrid() {
             <h2 className="text-section">Pick your chonk.</h2>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <Link href="/menu" className="chonk-btn chonk-btn-outline">
+            <Link href="/menu" className="chonk-btn chonk-btn-primary">
               See the menu
-            </Link>
-            <Link href="/build" className="chonk-btn chonk-btn-primary">
-              Build your own
             </Link>
           </div>
         </div>

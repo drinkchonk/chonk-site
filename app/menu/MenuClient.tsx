@@ -316,12 +316,6 @@ export default function MenuClient() {
                 >
                   ${variant.price.toFixed(2)} at first pop-up · Get on the list
                 </a>
-                <a
-                  href="/build"
-                  className="chonk-btn chonk-btn-outline chonk-btn-lg"
-                >
-                  Build your own →
-                </a>
               </div>
             </div>
           </div>
