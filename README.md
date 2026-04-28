@@ -26,6 +26,16 @@ npm install
 npm run dev          # http://localhost:3000 (or -p 3010 if 3000 is taken)
 ```
 
+## Newsletter signup (Resend)
+
+The footer "Get on the list" form posts to `/api/subscribe`, which adds the email as a contact in the **chonk waitlist** Resend audience and sends a welcome email. Set these in `.env.local` for local dev and in Vercel (Production + Preview) for deploys:
+
+| Var | Required | Notes |
+| --- | --- | --- |
+| `RESEND_API_KEY` | yes | From the drinkchonk workspace at [resend.com/api-keys](https://resend.com/api-keys). Mark **Sensitive** in Vercel. |
+| `RESEND_AUDIENCE_ID` | recommended | Audience ID from [resend.com/audiences](https://resend.com/audiences). Optional — if unset, the handler resolves (or creates) the **chonk waitlist** audience on first request and logs the ID; copy it back here for stability. |
+| `RESEND_FROM` | optional | e.g. `chonk. <hello@chonkshakes.com>`. Domain must be verified in Resend. If unset, contacts are still added; the welcome email is skipped. |
+
 ## Verify
 
 ```bash
