@@ -150,6 +150,13 @@ export async function POST(req: Request) {
     process.env.PUBLIC_SITE_URL?.trim() || new URL(req.url).origin;
   const unsubscribeUrl = buildUnsubscribeUrl(trimmed, baseUrl, apiKey);
   if (!isDuplicate && from) {
+    // Resend's free tier rate-limits to 2 API calls per second. We've
+    // already made 2 calls in this handler (contacts.get + contacts.create),
+    // so a third call to emails.send within the same window returns 429
+    // and the welcome silently fails. Sleep just over a second so the
+    // rate-limit window advances before the send.
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
     // Deliverability headers — the goal is Gmail Primary, not Promotions.
     // - List-Unsubscribe (HTTPS + mailto) is required by Gmail/Yahoo for
     //   bulk senders. The HTTPS URL handles RFC 8058 one-click POSTs from
