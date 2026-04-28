@@ -128,6 +128,14 @@ export async function POST(req: Request) {
       );
       return genericError();
     }
+    console.log(
+      "subscribe: contact created",
+      JSON.stringify({
+        email: trimmed,
+        audienceId,
+        contactId: created.data?.id ?? null,
+      }),
+    );
   }
 
   // Welcome email — only on first-time subscribe, only when a verified
@@ -165,8 +173,21 @@ export async function POST(req: Request) {
       // Contact is saved; failure to send the welcome is non-fatal.
       console.error(
         "subscribe: welcome email failed",
-        sent.error.name,
-        sent.error.message,
+        JSON.stringify({
+          to: trimmed,
+          from,
+          errorName: sent.error.name,
+          errorMessage: sent.error.message,
+        }),
+      );
+    } else {
+      console.log(
+        "subscribe: welcome email sent",
+        JSON.stringify({
+          to: trimmed,
+          from,
+          messageId: sent.data?.id ?? null,
+        }),
       );
     }
   } else if (!isDuplicate && !from) {

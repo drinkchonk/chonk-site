@@ -4,8 +4,10 @@ export const runtime = "nodejs";
 
 // TEMPORARY diagnostic endpoint. Returns presence + length of expected env
 // vars (never values) so we can confirm what the running production
-// container actually sees. Remove this file once newsletter signup is
-// fully verified in prod.
+// container actually sees. Folder is named "diag" (not "_diag") because
+// Next.js App Router treats `_`-prefixed folders as private and skips
+// them when discovering routes. Remove this file once newsletter signup
+// is fully verified in prod.
 export async function GET() {
   const summarize = (raw: string | undefined) => ({
     set: typeof raw === "string",
