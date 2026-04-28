@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { welcomeHtml, welcomeSubject, welcomeText } from "@/lib/email/welcome";
+import { buildUnsubscribeUrl } from "@/lib/email/unsubscribe";
 
 export const runtime = "nodejs";
 
@@ -133,13 +134,32 @@ export async function POST(req: Request) {
   // sender is configured. RESEND_FROM must be a domain verified in the
   // drinkchonk Resend workspace; we don't fall back to a guessed default.
   const from = process.env.RESEND_FROM?.trim();
+  const replyTo = process.env.RESEND_REPLY_TO?.trim() || "hello@chonkshakes.com.au";
+  // PUBLIC_SITE_URL lets us pin links to the canonical domain regardless of
+  // whether the request hit a preview deploy URL. Falls back to the request
+  // origin so it works in dev and prod without configuration.
+  const baseUrl =
+    process.env.PUBLIC_SITE_URL?.trim() || new URL(req.url).origin;
+  const unsubscribeUrl = buildUnsubscribeUrl(trimmed, baseUrl, apiKey);
   if (!isDuplicate && from) {
+    // Deliverability headers — the goal is Gmail Primary, not Promotions.
+    // - List-Unsubscribe (HTTPS + mailto) is required by Gmail/Yahoo for
+    //   bulk senders. The HTTPS URL handles RFC 8058 one-click POSTs from
+    //   the inbox-level "Unsubscribe" link mail clients render automatically.
+    // - replyTo points at a real human inbox so replies actually reach Sam.
+    // - tags identifies this as transactional (welcome) for Resend analytics.
     const sent = await resend.emails.send({
       from,
       to: trimmed,
+      replyTo,
       subject: welcomeSubject,
-      html: welcomeHtml(),
-      text: welcomeText(),
+      html: welcomeHtml(unsubscribeUrl),
+      text: welcomeText(unsubscribeUrl),
+      headers: {
+        "List-Unsubscribe": `<${unsubscribeUrl}>, <mailto:${replyTo}?subject=unsubscribe>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
+      tags: [{ name: "type", value: "welcome" }],
     });
     if (sent.error) {
       // Contact is saved; failure to send the welcome is non-fatal.
