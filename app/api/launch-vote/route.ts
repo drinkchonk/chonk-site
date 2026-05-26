@@ -1,31 +1,11 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { FIRST_DROP_OPTIONS, FLAVOUR_OPTIONS } from "@/lib/launchVoteOptions";
+import { submitLaunchVoteToTracker } from "@/lib/launchVoteTracker";
 
 export const runtime = "nodejs";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const PURCHASE_OPTIONS = [
-  "After training",
-  "Before training",
-  "Lunch",
-  "Afternoon snack",
-  "Weekend treat",
-  "At markets/events",
-];
-
-const FLAVOUR_OPTIONS = [
-  "Peanut Butter Chonk",
-  "Strawberry Cheesecake",
-  "Choc Banana",
-  "Vanilla Biscoff-style",
-  "Mango Cream",
-  "Coffee Protein",
-  "Other",
-];
-
-const PRICE_OPTIONS = ["$10-$11", "$12-$13", "$14-$15", "$16+"];
-const EARLY_ACCESS_OPTIONS = ["Yes, text me", "Maybe, email me", "No, just voting"];
 
 function cleanString(value: unknown, maxLength = 200) {
   return typeof value === "string"
@@ -63,11 +43,24 @@ function parseRecipients(value: string | undefined) {
     .filter(Boolean);
 }
 
-function validateOption(value: string, options: string[], label: string) {
+function validateOption(value: string, options: readonly string[], label: string) {
   if (!value || !options.includes(value)) {
     return `${label} is required.`;
   }
   return null;
+}
+
+function normalizeFirstDropInterest(value: string) {
+  switch (value) {
+    case "Yes, text me":
+      return "Yes";
+    case "Maybe, email me":
+      return "Maybe";
+    case "No, just voting":
+      return "No";
+    default:
+      return value;
+  }
 }
 
 function tableRow(label: string, value: string) {
@@ -96,18 +89,21 @@ export async function POST(req: Request) {
   const email = cleanString(raw.email, 254).toLowerCase();
   const gym = cleanString(raw.gym, 160);
   const suburb = cleanString(raw.suburb, 120);
-  const purchaseMoment = cleanString(raw.purchaseMoment, 80);
+  const finishTime = cleanString(raw.finishTime, 80);
   const flavour = cleanString(raw.flavour, 80);
-  const fairPrice = cleanString(raw.fairPrice, 40);
-  const earlyAccess = cleanString(raw.earlyAccess, 80);
+  const firstDropInterest = normalizeFirstDropInterest(
+    cleanString(raw.firstDropInterest ?? raw.earlyAccess, 80),
+  );
   const notes = cleanParagraph(raw.notes);
   const consent = raw.consent === true;
 
   const requiredFields = [
     ["First name", firstName],
     ["Phone number", phone],
+    ["Email", email],
     ["Gym", gym],
     ["Suburb", suburb],
+    ["Finish time", finishTime],
   ];
   const missing = requiredFields.find(([, value]) => !value);
   if (missing) {
@@ -117,7 +113,7 @@ export async function POST(req: Request) {
     );
   }
 
-  if (email && !EMAIL_RE.test(email)) {
+  if (!EMAIL_RE.test(email)) {
     return NextResponse.json(
       { error: "Please enter a valid email." },
       { status: 400 },
@@ -125,10 +121,8 @@ export async function POST(req: Request) {
   }
 
   const choiceError =
-    validateOption(purchaseMoment, PURCHASE_OPTIONS, "Purchase timing") ??
     validateOption(flavour, FLAVOUR_OPTIONS, "Flavour") ??
-    validateOption(fairPrice, PRICE_OPTIONS, "Price") ??
-    validateOption(earlyAccess, EARLY_ACCESS_OPTIONS, "Early access");
+    validateOption(firstDropInterest, FIRST_DROP_OPTIONS, "First-drop access");
 
   if (choiceError) {
     return NextResponse.json({ error: choiceError }, { status: 400 });
@@ -141,16 +135,31 @@ export async function POST(req: Request) {
     );
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM?.trim();
-  if (!apiKey || !from) {
-    console.error("launch-vote: RESEND_API_KEY or RESEND_FROM missing");
+  try {
+    await submitLaunchVoteToTracker({
+      firstName,
+      phone,
+      email,
+      gym,
+      suburb,
+      finishTime,
+      flavour,
+      firstDropInterest,
+      consent,
+    });
+  } catch (err) {
+    console.error(
+      "launch-vote: tracker submit failed",
+      err instanceof Error ? err.message : "unknown",
+    );
     return NextResponse.json(
-      { error: "Email service not configured." },
+      { error: "Could not submit your vote right now. Try again shortly." },
       { status: 500 },
     );
   }
 
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM?.trim();
   const recipients = parseRecipients(process.env.LAUNCH_VOTE_TO);
   const fallbackRecipient =
     process.env.RESEND_REPLY_TO?.trim() || "hello@chonkshakes.com.au";
@@ -168,11 +177,10 @@ export async function POST(req: Request) {
     ["Phone", phone],
     ["Email", email],
     ["Gym", gym],
-    ["Launch suburb", suburb],
-    ["Likely purchase moment", purchaseMoment],
+    ["Training suburb", suburb],
+    ["Finish time", finishTime],
     ["First flavour vote", flavour],
-    ["Fair price", fairPrice],
-    ["Early access", earlyAccess],
+    ["First-drop access", firstDropInterest],
     ["Consent", consent ? "Agreed" : "Not agreed"],
     ["Submitted", `${submittedAt} AWST`],
     ["Notes", notes],
@@ -198,37 +206,42 @@ export async function POST(req: Request) {
     .map(([label, value]) => `${label}: ${value || "Not provided"}`)
     .join("\n");
 
-  const resend = new Resend(apiKey);
-  const sent = await resend.emails.send({
-    from,
-    to,
-    replyTo,
-    subject: `Chonk launch vote: ${suburb} / ${flavour}`,
-    html,
-    text,
-    tags: [{ name: "type", value: "launch_vote" }],
-  });
+  let messageId: string | null = null;
+  if (apiKey && from) {
+    const resend = new Resend(apiKey);
+    const sent = await resend.emails.send({
+      from,
+      to,
+      replyTo,
+      subject: `Chonk first-drop vote: ${gym} / ${suburb}`,
+      html,
+      text,
+      tags: [{ name: "type", value: "launch_vote" }],
+    });
 
-  if (sent.error) {
-    console.error(
-      "launch-vote: email send failed",
-      sent.error.name,
-      sent.error.message,
-    );
-    return NextResponse.json(
-      { error: "Could not submit your vote right now. Try again shortly." },
-      { status: 500 },
+    if (sent.error) {
+      console.error(
+        "launch-vote: email send failed",
+        sent.error.name,
+        sent.error.message,
+      );
+    } else {
+      messageId = sent.data?.id ?? null;
+    }
+  } else {
+    console.warn(
+      "launch-vote: RESEND_API_KEY or RESEND_FROM missing; skipped email notification",
     );
   }
 
   console.log(
     "launch-vote: submitted",
     JSON.stringify({
+      gym,
       suburb,
       flavour,
-      fairPrice,
-      earlyAccess,
-      messageId: sent.data?.id ?? null,
+      firstDropInterest,
+      messageId,
     }),
   );
 

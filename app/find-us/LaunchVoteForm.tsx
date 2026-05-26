@@ -2,31 +2,9 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { FIRST_DROP_OPTIONS, FLAVOUR_OPTIONS } from "@/lib/launchVoteOptions";
 
 type Status = "idle" | "sending" | "sent" | "error";
-
-const purchaseOptions = [
-  "After training",
-  "Before training",
-  "Lunch",
-  "Afternoon snack",
-  "Weekend treat",
-  "At markets/events",
-];
-
-const flavourOptions = [
-  "Peanut Butter Chonk",
-  "Strawberry Cheesecake",
-  "Choc Banana",
-  "Vanilla Biscoff-style",
-  "Mango Cream",
-  "Coffee Protein",
-  "Other",
-];
-
-const priceOptions = ["$10-$11", "$12-$13", "$14-$15", "$16+"];
-
-const earlyAccessOptions = ["Yes, text me", "Maybe, email me", "No, just voting"];
 
 const inputClassName =
   "w-full rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-cream)] px-4 py-3 text-[15px] text-ink outline-none transition focus-visible:border-[var(--color-proof-fg)] disabled:opacity-60";
@@ -53,7 +31,7 @@ function RadioGroup({
 }: {
   legend: string;
   name: string;
-  options: string[];
+  options: readonly string[];
 }) {
   return (
     <fieldset className="flex flex-col gap-3">
@@ -106,12 +84,10 @@ export default function LaunchVoteForm() {
           email: formData.get("email"),
           gym: formData.get("gym"),
           suburb: formData.get("suburb"),
-          purchaseMoment: formData.get("purchaseMoment"),
+          finishTime: formData.get("finishTime"),
           flavour: formData.get("flavour"),
-          fairPrice: formData.get("fairPrice"),
-          earlyAccess: formData.get("earlyAccess"),
+          firstDropInterest: formData.get("firstDropInterest"),
           consent: formData.get("consent") === "on",
-          notes: formData.get("notes"),
           hp: formData.get("hp"),
         }),
       });
@@ -128,7 +104,9 @@ export default function LaunchVoteForm() {
 
       form.reset();
       setStatus("sent");
-      setMessage("Vote locked in. Founding voters hear first.");
+      setMessage(
+        "Done. You're on the Chonk first-drop list. The more people from your gym who vote, the higher it moves up the drop list.",
+      );
     } catch {
       setStatus("error");
       setMessage("Network error. Try again.");
@@ -185,10 +163,11 @@ export default function LaunchVoteForm() {
         </label>
 
         <label className="flex flex-col gap-2">
-          <FieldLabel label="Email" />
+          <FieldLabel label="Email" required />
           <input
             type="email"
             name="email"
+            required
             disabled={disabled}
             autoComplete="email"
             className={inputClassName}
@@ -196,7 +175,7 @@ export default function LaunchVoteForm() {
         </label>
 
         <label className="flex flex-col gap-2 md:col-span-2">
-          <FieldLabel label="Which gym do you train at most?" required />
+          <FieldLabel label="Which gym do you train at?" required />
           <input
             type="text"
             name="gym"
@@ -208,7 +187,7 @@ export default function LaunchVoteForm() {
         </label>
 
         <label className="flex flex-col gap-2 md:col-span-2">
-          <FieldLabel label="Which suburb should Chonk launch in first?" required />
+          <FieldLabel label="What suburb do you train in?" required />
           <input
             type="text"
             name="suburb"
@@ -217,30 +196,33 @@ export default function LaunchVoteForm() {
             className={inputClassName}
           />
         </label>
+
+        <label className="flex flex-col gap-2 md:col-span-2">
+          <FieldLabel
+            label="What time do you usually finish training?"
+            required
+          />
+          <input
+            type="text"
+            name="finishTime"
+            required
+            disabled={disabled}
+            placeholder="5:30pm, after 6pm, Saturday mornings, etc."
+            className={inputClassName}
+          />
+        </label>
       </div>
 
       <RadioGroup
-        legend="When would you most likely buy a Chonk shake?"
-        name="purchaseMoment"
-        options={purchaseOptions}
-      />
-
-      <RadioGroup
-        legend="Which flavour should drop first?"
+        legend="Which flavour would you buy first?"
         name="flavour"
-        options={flavourOptions}
+        options={FLAVOUR_OPTIONS}
       />
 
       <RadioGroup
-        legend="What price feels fair for a thick high-protein smoothie?"
-        name="fairPrice"
-        options={priceOptions}
-      />
-
-      <RadioGroup
-        legend="Would you want early access to the first Chonk drop?"
-        name="earlyAccess"
-        options={earlyAccessOptions}
+        legend="Would you want first-drop access?"
+        name="firstDropInterest"
+        options={FIRST_DROP_OPTIONS}
       />
 
       <label className="flex items-start gap-3 rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-cream)] p-4 text-sm leading-[1.5]">
@@ -252,19 +234,8 @@ export default function LaunchVoteForm() {
           className="mt-1 h-4 w-4 flex-none accent-[var(--color-proof-fg)]"
         />
         <span>
-          I agree to receive Chonk launch updates and marketing messages. I
-          understand I can unsubscribe at any time.
+          I agree to receive SMS/email launch updates from Chonk.
         </span>
-      </label>
-
-      <label className="flex flex-col gap-2">
-        <FieldLabel label="Anything you want Chonk to know?" />
-        <textarea
-          name="notes"
-          rows={4}
-          disabled={disabled}
-          className={`${inputClassName} resize-y`}
-        />
       </label>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
