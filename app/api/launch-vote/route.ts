@@ -84,26 +84,41 @@ export async function POST(req: Request) {
   const hp = cleanString(raw.hp, 120);
   if (hp) return NextResponse.json({ ok: true });
 
-  const firstName = cleanString(raw.firstName, 80);
+  // `name` is the Leaflet modal's alias for `firstName`. Either may
+  // arrive; the legacy /find-us form sent `firstName`, the new modal
+  // sends `name`.
+  const firstName = cleanString(raw.firstName ?? raw.name, 80);
   const phone = cleanString(raw.phone, 60);
   const email = cleanString(raw.email, 254).toLowerCase();
   const gym = cleanString(raw.gym, 160);
   const suburb = cleanString(raw.suburb, 120);
   const finishTime = cleanString(raw.finishTime, 80);
   const flavour = cleanString(raw.flavour, 80);
+  // `firstDrop` is the Leaflet modal's boolean alias for
+  // `firstDropInterest`. true → "Yes", false → "No".
+  const firstDropFromBool =
+    typeof raw.firstDrop === "boolean"
+      ? raw.firstDrop
+        ? "Yes"
+        : "No"
+      : undefined;
   const firstDropInterest = normalizeFirstDropInterest(
-    cleanString(raw.firstDropInterest ?? raw.earlyAccess, 80),
+    cleanString(
+      raw.firstDropInterest ?? raw.earlyAccess ?? firstDropFromBool,
+      80,
+    ),
   );
   const notes = cleanParagraph(raw.notes);
   const consent = raw.consent === true;
 
+  // The Leaflet modal omits `phone` and `finishTime`. The legacy
+  // /find-us form required them. We keep the irreducible required set
+  // (name + email + gym + suburb) and treat the other two as optional.
   const requiredFields = [
     ["First name", firstName],
-    ["Phone number", phone],
     ["Email", email],
     ["Gym", gym],
     ["Suburb", suburb],
-    ["Finish time", finishTime],
   ];
   const missing = requiredFields.find(([, value]) => !value);
   if (missing) {
