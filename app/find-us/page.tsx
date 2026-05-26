@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { locations } from "@/lib/data/locations";
 import { cn } from "@/lib/utils";
+import LaunchVoteForm from "./LaunchVoteForm";
 import WholesaleForm from "./WholesaleForm";
 
 export const metadata: Metadata = {
-  title: "Find us",
+  title: "Where should Chonk launch first?",
   description:
-    "chonk. is launching soon in Perth. Get on the list for the first pop-up. Wholesale and venue enquiries open now.",
+    "Vote for the first Chonk launch gym, suburb, and flavour drop. Founding voters get early access to the first Perth drop.",
 };
 
 export default function FindUsPage() {
@@ -18,31 +20,20 @@ export default function FindUsPage() {
             className="text-eyebrow"
             style={{ color: "var(--color-proof-fg)" }}
           >
-            Find us
+            Founding vote
           </span>
           <h1 className="text-hero mt-3 max-w-[820px]">
-            First pop-up,
-            <br />
-            <span style={{ color: "var(--color-pink)" }}>
-              dropping soon in Perth.
-            </span>
+            Where should Chonk launch first?
           </h1>
           <p
             className="leading-[1.6] max-w-[640px] mt-5"
             style={{ color: "var(--color-muted)", fontSize: 17 }}
           >
-            We&apos;re prepping the first chonk. pop-up right now — recipe,
-            compliance, cup, pour. The list knows first. Everyone else finds
-            out shortly after.
+            Chonk is a Perth high-protein smoothie brand launching soon. Help
+            choose the first gym, suburb, and flavour drops. Founding voters get
+            early access to the first drop.
           </p>
-          <div className="flex gap-3 flex-wrap mt-7">
-            <a
-              href="/#newsletter"
-              className="chonk-btn chonk-btn-primary chonk-btn-lg"
-            >
-              Get on the list
-            </a>
-          </div>
+          <LaunchVoteForm />
         </div>
       </section>
 
@@ -193,13 +184,13 @@ export default function FindUsPage() {
                   Opening {loc.pin?.eta ?? "soon"} · Get on the list for the
                   drop
                 </div>
-                <a
+                <Link
                   href="/#newsletter"
                   className="chonk-btn chonk-btn-ghost chonk-btn-sm self-start mt-2"
                   style={{ padding: "8px 0" }}
                 >
                   Notify me →
-                </a>
+                </Link>
               </div>
             ))}
           </div>

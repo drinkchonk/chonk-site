@@ -45,6 +45,13 @@ export default function CTABlock() {
               Get on the list
             </Link>
             <Link
+              href="/find-us"
+              className="chonk-btn chonk-btn-lg"
+              style={{ border: "2px solid #1A1614", color: "#1A1614" }}
+            >
+              Where should Chonk launch first?
+            </Link>
+            <Link
               href="/menu"
               className="chonk-btn chonk-btn-lg"
               style={{ border: "2px solid #1A1614", color: "#1A1614" }}

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function FindUsTeaser() {
   return (
     <section
@@ -31,18 +33,18 @@ export default function FindUsTeaser() {
               the moment it&apos;s pouring.
             </p>
             <div className="flex gap-3 flex-wrap mt-7">
-              <a
+              <Link
                 href="/#newsletter"
                 className="chonk-btn chonk-btn-primary"
               >
                 Get on the list
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/find-us"
                 className="chonk-btn chonk-btn-outline"
               >
-                Wholesale &amp; venues
-              </a>
+                Where should Chonk launch first?
+              </Link>
             </div>
           </div>
 

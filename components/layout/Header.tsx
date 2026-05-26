@@ -42,7 +42,7 @@ export default function Header() {
           "bg-[#F2B8CC]"
         )}
       >
-        <div className="container-site flex h-[72px] items-center justify-between">
+        <div className="container-site site-header-inner flex h-[72px] items-center justify-between gap-3">
           <Link
             href="/"
             aria-label="Chonk — home"
@@ -80,10 +80,10 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="chonk-header-actions flex items-center">
             <Link
               href="/#newsletter"
-              className="chonk-btn chonk-btn-primary chonk-btn-sm hidden md:inline-flex"
+              className="chonk-btn chonk-btn-primary chonk-btn-header"
               style={{
                 border: "2px solid #000000",
                 color: "#000000",
@@ -91,10 +91,20 @@ export default function Header() {
             >
               Get on the list
             </Link>
+            <Link
+              href="/find-us"
+              className="chonk-btn chonk-btn-outline chonk-btn-header chonk-btn-header-launch chonk-btn-header-soft-hover"
+              style={{
+                border: "2px solid #000000",
+                color: "#000000",
+              }}
+            >
+              Where should Chonk launch first?
+            </Link>
 
             <button
               type="button"
-              className="flex md:hidden flex-col gap-1.5 p-2"
+              className="flex h-9 w-9 flex-none flex-col items-center justify-center gap-1.5 rounded-full transition-colors hover:bg-[#ffe7f7] md:hidden"
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen ? "true" : "false"}
@@ -152,6 +162,13 @@ export default function Header() {
               className="chonk-btn chonk-btn-primary chonk-btn-lg w-full"
             >
               Get on the list
+            </Link>
+            <Link
+              href="/find-us"
+              onClick={() => setMenuOpen(false)}
+              className="chonk-btn chonk-btn-outline chonk-btn-header-soft-hover chonk-btn-lg w-full mt-3"
+            >
+              Where should Chonk launch first?
             </Link>
           </div>
         </nav>
