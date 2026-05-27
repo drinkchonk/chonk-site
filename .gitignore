@@ -41,3 +41,6 @@ yarn-error.log*
 # editor
 .idea/
 .vscode/
+
+# claude code worktree dumps (transient agent state, not source)
+.claude/worktrees/
