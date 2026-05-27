@@ -6,7 +6,7 @@ import NewsletterForm from "./NewsletterForm";
 const exploreLinks = [
   { href: "/menu", label: "Menu" },
   { href: "/references", label: "Science" },
-  { href: "/find-us", label: "Find Us" },
+  { href: "/", label: "Find Us" },
   { href: "/about", label: "About" },
 ];
 
@@ -135,7 +135,7 @@ export default function Footer() {
             <Link href="#" className="hover:text-ink transition-colors">
               Terms
             </Link>
-            <Link href="/find-us" className="hover:text-ink transition-colors">
+            <Link href="/wholesale" className="hover:text-ink transition-colors">
               Wholesale
             </Link>
           </div>

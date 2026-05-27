@@ -40,7 +40,7 @@ export default function FindUsTeaser() {
                 Get on the list
               </Link>
               <Link
-                href="/find-us"
+                href="/"
                 className="chonk-btn chonk-btn-outline"
               >
                 Where should Chonk launch first?

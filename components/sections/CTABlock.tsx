@@ -45,7 +45,7 @@ export default function CTABlock() {
               Get on the list
             </Link>
             <Link
-              href="/find-us"
+              href="/"
               className="chonk-btn chonk-btn-lg"
               style={{ border: "2px solid #1A1614", color: "#1A1614" }}
             >

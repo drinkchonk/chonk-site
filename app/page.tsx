@@ -1,30 +1,12 @@
 import type { Metadata } from "next";
-import { HeroLab } from "@/components/sections/HeroLab";
-import ProofBar from "@/components/sections/ProofBar";
-import FlavourGrid from "@/components/sections/FlavourGrid";
-import IngredientScience from "@/components/sections/IngredientScience";
-import ComparisonSection from "@/components/sections/ComparisonSection";
-import FounderStory from "@/components/sections/FounderStory";
-import FindUsTeaser from "@/components/sections/FindUsTeaser";
-import CTABlock from "@/components/sections/CTABlock";
+import DropRaceLeaflet from "@/components/sections/DropRaceLeaflet";
 
 export const metadata: Metadata = {
-  title: "the chonkiverse",
+  title: "Chonk — Where should we drop first?",
   description:
-    "the chonkiverse — a high-protein shake, rendered as its own solar system.",
+    "Vote for your gym or suburb. Most votes wins the first Chonk drop.",
 };
 
 export default function HomePage() {
-  return (
-    <>
-      <HeroLab />
-      <FlavourGrid />
-      <ProofBar />
-      <ComparisonSection />
-      <IngredientScience />
-      <FounderStory />
-      <FindUsTeaser />
-      <CTABlock />
-    </>
-  );
+  return <DropRaceLeaflet />;
 }

@@ -10,7 +10,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
   { href: "/references", label: "Science" },
-  { href: "/find-us", label: "Find Us" },
+  { href: "/", label: "Find Us" },
   { href: "/about", label: "About" },
 ];
 
@@ -92,7 +92,7 @@ export default function Header() {
               Get on the list
             </Link>
             <Link
-              href="/find-us"
+              href="/"
               className="chonk-btn chonk-btn-outline chonk-btn-header chonk-btn-header-launch chonk-btn-header-soft-hover"
               style={{
                 border: "2px solid #000000",
@@ -164,7 +164,7 @@ export default function Header() {
               Get on the list
             </Link>
             <Link
-              href="/find-us"
+              href="/"
               onClick={() => setMenuOpen(false)}
               className="chonk-btn chonk-btn-outline chonk-btn-header-soft-hover chonk-btn-lg w-full mt-3"
             >
