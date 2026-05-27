@@ -15,5 +15,5 @@ export type DropRaceVoteModalProps = {
 };
 
 export default function DropRaceVoteModal(_props: DropRaceVoteModalProps) {
-  throw new Error("DropRaceVoteModal not implemented");
+  return null;
 }
