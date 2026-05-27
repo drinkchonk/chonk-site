@@ -4,11 +4,18 @@ import Footer from "@/components/layout/Footer";
 describe("<Footer />", () => {
   it("links to all top-level routes", () => {
     render(<Footer />);
-    ["Menu", "About", "Find Us", "Science"].forEach((label) => {
+    ["Menu", "About", "Science"].forEach((label) => {
       expect(
         screen.getByRole("link", { name: new RegExp(`^${label}$`, "i") })
       ).toBeInTheDocument();
     });
+  });
+
+  it("does not render a stale 'Find Us' link (deduped in Sprint 1)", () => {
+    render(<Footer />);
+    expect(
+      screen.queryByRole("link", { name: /^Find Us$/i })
+    ).not.toBeInTheDocument();
   });
 
   it("renders Instagram and TikTok with target=_blank and noopener", () => {

@@ -6,7 +6,6 @@ import NewsletterForm from "./NewsletterForm";
 const exploreLinks = [
   { href: "/menu", label: "Menu" },
   { href: "/references", label: "Science" },
-  { href: "/", label: "Find Us" },
   { href: "/about", label: "About" },
 ];
 

@@ -10,7 +10,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/menu", label: "Menu" },
   { href: "/references", label: "Science" },
-  { href: "/", label: "Find Us" },
   { href: "/about", label: "About" },
 ];
 
