@@ -41,7 +41,7 @@ export default function Header() {
           "bg-[#F2B8CC]"
         )}
       >
-        <div className="container-site site-header-inner flex h-[72px] items-center justify-between gap-3">
+        <div className="container-site site-header-inner flex h-[var(--chonk-header-height)] items-center justify-between gap-3">
           <Link
             href="/"
             aria-label="Chonk — home"

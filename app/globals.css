@@ -51,6 +51,7 @@
 
   /* Layout */
   --container-site: 1280px;
+  --chonk-header-height: 72px;
 }
 
 /* Tailwind v4 custom utilities */
@@ -484,6 +485,73 @@
   .reveal.d2 { transition-delay: 160ms; }
   .reveal.d3 { transition-delay: 240ms; }
   .reveal.d4 { transition-delay: 320ms; }
+
+  /* ─── Leaflet ↔ Tailwind v4 preflight compat ───────────
+     Tailwind v4's preflight applies `img { max-width: 100% }` globally,
+     which breaks Leaflet's tile-positioning math (tiles get scaled
+     instead of fixed-size). Neutralise just on Leaflet's containers. */
+  .leaflet-container img {
+    max-width: none;
+  }
+  .leaflet-container img.leaflet-tile {
+    width: var(--leaflet-tile-size, 256px);
+    height: var(--leaflet-tile-size, 256px);
+  }
+
+  /* ─── Drop Race pin marker ─────────────────────────────
+     Ported in spirit from /tmp/chonk-zip/Drop Race Map.html (OQ-2 default).
+     L.divIcon emits a wrapper with `.chonk-pin-icon`, inside which our
+     component renders `<div class="chonk-pin"><div class="halo"></div>
+     <div class="core">{votes}</div></div>`. We strip leaflet's default
+     div-icon chrome and paint our own pink halo + dark core badge. */
+  .chonk-pin-icon {
+    background: none !important;
+    border: none !important;
+  }
+  .chonk-pin {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+  }
+  .chonk-pin .halo {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(242, 184, 204, 0.55);
+    animation: chonk-pin-pulse 2.2s ease-in-out infinite;
+    transition: transform 200ms ease, background 200ms ease;
+  }
+  .chonk-pin .core {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--color-ink);
+    color: var(--color-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 100, "WONK" 1;
+    font-weight: 900;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    box-shadow: 0 4px 10px rgba(14, 12, 13, 0.25);
+    border: 2px solid var(--color-cream);
+    transition: transform 200ms ease, background 200ms ease;
+  }
+  .chonk-pin:hover .halo {
+    transform: scale(1.18);
+    background: rgba(242, 184, 204, 0.75);
+  }
+  .chonk-pin:hover .core {
+    transform: scale(1.05);
+  }
+  @keyframes chonk-pin-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.65; }
+    50%      { transform: scale(1.18); opacity: 0.3; }
+  }
 }
 
 /* Lenis smooth scroll compatibility */

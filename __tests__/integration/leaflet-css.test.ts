@@ -69,8 +69,9 @@ describe("AC-3 — Section height respects sticky header (one source of truth)",
     expect(sectionMatch).not.toBeNull();
     const sectionStyleBody = sectionMatch![1];
 
-    // Must reference the token via var(--chonk-header-height).
-    expect(sectionStyleBody).toMatch(/var\(--chonk-header-height\)/);
+    // Must reference the token via var(--chonk-header-height) — with or
+    // without a default fallback (e.g. `var(--chonk-header-height, 72px)`).
+    expect(sectionStyleBody).toMatch(/var\(--chonk-header-height\b/);
 
     // Must NOT use a bare `100vh` value (without calc()) in the height
     // declaration. Tolerant: allow `height: "calc(100vh - var(--...))"` but

@@ -1,5 +1,7 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DROP_RACE_LOCATIONS,
@@ -146,7 +148,7 @@ export default function DropRaceLeaflet() {
       style={{
         position: "relative",
         width: "100%",
-        height: "100vh",
+        height: "calc(100vh - var(--chonk-header-height, 72px))",
         background: "var(--color-cream)",
         overflow: "hidden",
       }}
