@@ -3,13 +3,11 @@
  */
 import {
   act,
-  fireEvent,
   render,
   screen,
   waitFor,
   within,
 } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { DROP_RACE_LOCATIONS } from "@/lib/data/drop-race-locations";
 
 /**
@@ -102,49 +100,6 @@ describe("<DropRaceLeaflet />", () => {
     expect(rows[1].textContent).toContain("22");
     expect(rows[2].textContent).toMatch(/Innaloo/);
     expect(rows[2].textContent).toContain("16");
-  });
-
-  it("renders both CTAs: 'Vote My Gym' and 'Join First-Drop List'", async () => {
-    await renderComponent();
-    expect(
-      screen.getByRole("button", { name: /Vote My Gym/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Join First-Drop List/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("opens the vote modal when 'Vote My Gym' is clicked", async () => {
-    const user = userEvent.setup();
-    await renderComponent();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Vote My Gym/i }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-  });
-
-  it("closes the vote modal when Escape is pressed", async () => {
-    const user = userEvent.setup();
-    await renderComponent();
-    await user.click(screen.getByRole("button", { name: /Vote My Gym/i }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    fireEvent.keyDown(window, { key: "Escape" });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-
-  it("opens the modal with empty gym/suburb when 'Join First-Drop List' is clicked (OQ-2)", async () => {
-    const user = userEvent.setup();
-    await renderComponent();
-    await user.click(
-      screen.getByRole("button", { name: /Join First-Drop List/i }),
-    );
-    const dialog = screen.getByRole("dialog");
-    expect(dialog).toBeInTheDocument();
-    const gymInput = within(dialog).getByLabelText(/gym/i) as HTMLInputElement;
-    const suburbInput = within(dialog).getByLabelText(
-      /suburb/i,
-    ) as HTMLInputElement;
-    expect(gymInput.value).toBe("");
-    expect(suburbInput.value).toBe("");
   });
 
   it("initialises the Leaflet map only on the client (uses dynamic import)", async () => {

@@ -7,9 +7,6 @@ import {
   DROP_RACE_LOCATIONS,
   type DropRaceLocation,
 } from "@/lib/data/drop-race-locations";
-import DropRaceVoteModal, {
-  type DropRaceVoteTarget,
-} from "@/components/forms/DropRaceVoteModal";
 
 type LocalLocation = DropRaceLocation;
 
@@ -27,8 +24,6 @@ export default function DropRaceLeaflet() {
   const [locations, setLocations] = useState<LocalLocation[]>(() =>
     DROP_RACE_LOCATIONS.map((l) => ({ ...l })),
   );
-  const [open, setOpen] = useState(false);
-  const [target, setTarget] = useState<DropRaceVoteTarget>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const totalVotes = useMemo(
@@ -41,15 +36,11 @@ export default function DropRaceLeaflet() {
     [locations],
   );
 
-  // Esc-to-close (global), per AC-3.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  function bumpVote(id: string) {
+    setLocations((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, votes: l.votes + 1 } : l)),
+    );
+  }
 
   // Client-only Leaflet init via dynamic import — keeps Next SSR happy.
   useEffect(() => {
@@ -95,21 +86,12 @@ export default function DropRaceLeaflet() {
             `<strong>${loc.name}</strong><br/><span style="opacity:.7">${loc.kind === "gym" ? "Gym" : "Zone"} · ${loc.suburb}</span>`,
             { direction: "top", offset: [0, -10] },
           );
-          m.on("click", () => {
-            setTarget({
-              id: loc.id,
-              name: loc.name,
-              suburb: loc.suburb,
-              kind: loc.kind,
-            });
-            setOpen(true);
-          });
+          m.on("click", () => bumpVote(loc.id));
         }
         cleanup = () => map.remove();
       } catch {
         // Leaflet failed to load (e.g. in a test env that doesn't mock it);
-        // the static React UI still renders, AC-3 doesn't require a real
-        // map for its assertions.
+        // the static React UI still renders.
       }
     })();
 
@@ -118,29 +100,6 @@ export default function DropRaceLeaflet() {
       if (cleanup) cleanup();
     };
   }, [locations]);
-
-  function openVoteCta() {
-    setTarget(null);
-    setOpen(true);
-  }
-
-  function openListCta() {
-    // OQ-2: same modal opens with empty gym/suburb. No pre-fill = target null.
-    setTarget(null);
-    setOpen(true);
-  }
-
-  function handleSubmitted(submittedFor: DropRaceVoteTarget) {
-    // Optimistic bump on the matched pin.
-    if (submittedFor) {
-      setLocations((prev) =>
-        prev.map((l) =>
-          l.id === submittedFor.id ? { ...l, votes: l.votes + 1 } : l,
-        ),
-      );
-    }
-    // Modal handles its own confirmation state.
-  }
 
   return (
     <section
@@ -199,7 +158,7 @@ export default function DropRaceLeaflet() {
               color: "var(--color-muted)",
             }}
           >
-            Vote for your gym or suburb. Most votes wins the first drop.
+            Tap your gym or suburb to lock a vote.
           </p>
         </div>
 
@@ -234,7 +193,7 @@ export default function DropRaceLeaflet() {
               {totalVotes}
             </div>
             <div style={{ fontSize: 11, color: "var(--color-muted)" }}>
-              Votes locked live
+              Votes locked
             </div>
           </div>
         </div>
@@ -303,46 +262,6 @@ export default function DropRaceLeaflet() {
           ))}
         </ol>
       </div>
-
-      <div
-        style={{
-          position: "absolute",
-          bottom: 20,
-          right: 20,
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          zIndex: 400,
-        }}
-      >
-        <button
-          type="button"
-          onClick={openVoteCta}
-          className="chonk-btn chonk-btn-primary chonk-btn-lg"
-          style={{ background: "var(--color-pink)", color: "white" }}
-        >
-          Vote My Gym
-        </button>
-        <button
-          type="button"
-          onClick={openListCta}
-          className="chonk-btn chonk-btn-outline"
-          style={{
-            background: "transparent",
-            color: "var(--color-ink)",
-            border: "1px solid var(--color-hairline)",
-          }}
-        >
-          Join First-Drop List
-        </button>
-      </div>
-
-      <DropRaceVoteModal
-        open={open}
-        target={target}
-        onClose={() => setOpen(false)}
-        onSubmitted={handleSubmitted}
-      />
     </section>
   );
 }
