@@ -310,7 +310,21 @@ export default function DropRaceLeaflet() {
         open={modalLocationId !== null}
         target={modalTarget}
         onClose={() => setModalLocationId(null)}
-        onSubmitted={() => setModalLocationId(null)}
+        onSubmitted={(target) => {
+          if (target) {
+            bumpVote(target.id);
+            if (typeof window !== "undefined") {
+              window.localStorage.setItem(
+                "chonk:launchVote:voted",
+                target.id,
+              );
+            }
+            // Keep the ref in sync so a same-session second click is gated
+            // before the next page load picks up localStorage on hydration.
+            hasVotedRef.current = target.id;
+          }
+          setModalLocationId(null);
+        }}
       />
     </section>
   );
