@@ -354,6 +354,55 @@ describe("<DropRaceLeaflet />", () => {
       });
     });
 
+    it("AC-5: opening then closing the modal without submitting does NOT bump votes, set localStorage, or engage the gate", async () => {
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+      await renderComponent();
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+
+      const marker = L.marker.mock.results[0].value;
+      const clickHandler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+
+      // First click opens the modal.
+      act(() => clickHandler());
+      await waitFor(() =>
+        expect(screen.getByRole("dialog")).toBeInTheDocument(),
+      );
+
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+
+      // Close via the modal's × button (aria-label="Close").
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("button", { name: /Close/i }));
+
+      // Modal removed from DOM.
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+      );
+
+      // Vote count unchanged — close without submit must NOT call bumpVote.
+      expect(
+        screen.getByTestId("drop-race-total-votes").textContent,
+      ).toContain(String(initialTotal));
+
+      // localStorage gate untouched — close without submit must NOT setItem.
+      expect(window.localStorage.getItem("chonk:launchVote:voted")).toBeNull();
+
+      // Subsequent click reopens the modal — proves the gate is not engaged.
+      act(() => clickHandler());
+      await waitFor(() =>
+        expect(screen.getByRole("dialog")).toBeInTheDocument(),
+      );
+    });
+
     it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
       await renderComponent();
       expect(
