@@ -1,15 +1,17 @@
 /**
  * @jest-environment jsdom
  *
- * AC-4 guardrails on app/page.tsx — home page is the demand-capture
- * landing and only the demand-capture landing.
+ * AC-1 (chonk-home-redesign): the home page composes five sections in
+ * order — Map (DropRaceLeaflet) → HeroLab (chonkiverse cup) → FlavourGrid
+ * (Pick your chonk.) → ComparisonSection (no one's in our weight class)
+ * → ProofBar (The receipts).
  */
 import fs from "node:fs";
 import path from "node:path";
 import { render, screen } from "@testing-library/react";
 
 // Mock leaflet because DropRaceLeaflet's useEffect imports it; the actual
-// map init is irrelevant to AC-4 — we only assert the page's section shape.
+// map init is irrelevant to AC-1 — we only assert the page's section shape.
 jest.mock("leaflet", () => {
   const noop = jest.fn().mockReturnThis();
   return {
@@ -17,6 +19,7 @@ jest.mock("leaflet", () => {
     default: {
       map: jest.fn(() => ({
         setView: noop,
+        fitBounds: noop,
         addLayer: noop,
         remove: jest.fn(),
         on: noop,
@@ -36,11 +39,12 @@ jest.mock("leaflet", () => {
         clearLayers: jest.fn(),
         remove: jest.fn(),
       })),
+      latLngBounds: jest.fn(() => ({ pad: noop })),
     },
   };
 });
 
-describe("app/page.tsx — AC-4 (home is demand-capture landing)", () => {
+describe("app/page.tsx — AC-1 (home composes 5 sections in order)", () => {
   it("renders DropRaceLeaflet (Drop Race headline copy is in the DOM)", async () => {
     const { default: HomePage } = await import("@/app/page");
     render(<HomePage />);
@@ -49,22 +53,58 @@ describe("app/page.tsx — AC-4 (home is demand-capture landing)", () => {
     ).toBeInTheDocument();
   });
 
-  it("does NOT import any of the archived home-page section components", () => {
+  it("renders all five sections in the expected DOM order: Map → HeroLab → FlavourGrid → ComparisonSection → ProofBar", async () => {
+    const { default: HomePage } = await import("@/app/page");
+    render(<HomePage />);
+
+    // Pick one stable unique anchor per section.
+    const mapEl = screen.getByTestId("drop-race-map");
+    const heroLabEl = screen.getByText(/Enter the Chonkiverse\./i);
+    const flavourEl = screen.getByText(/Pick your chonk\./i);
+    const weightClassEl = screen.getByText(/weight class\./i);
+    // ProofBar's eyebrow appears once; the section's aria-label "The receipts"
+    // is also unique. Use the eyebrow text.
+    const receiptsEl = screen.getByText("The receipts");
+
+    // Each section must follow the previous one in DOM order.
+    function follows(a: Element, b: Element) {
+      return (
+        a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
+      ) !== 0;
+    }
+
+    expect(follows(mapEl, heroLabEl)).toBe(true);
+    expect(follows(heroLabEl, flavourEl)).toBe(true);
+    expect(follows(flavourEl, weightClassEl)).toBe(true);
+    expect(follows(weightClassEl, receiptsEl)).toBe(true);
+  });
+
+  it("imports the four restored brand-section components (HeroLab / FlavourGrid / ComparisonSection / ProofBar)", () => {
     const src = fs.readFileSync(
       path.join(process.cwd(), "app/page.tsx"),
       "utf8",
     );
-    const archived = [
-      "HeroLab",
-      "FlavourGrid",
-      "ProofBar",
-      "ComparisonSection",
+    // Each must appear as an import. Tolerant of named vs default form.
+    expect(src).toMatch(/import[^;]*\bHeroLab\b/);
+    expect(src).toMatch(/import[^;]*\bFlavourGrid\b/);
+    expect(src).toMatch(/import[^;]*\bComparisonSection\b/);
+    expect(src).toMatch(/import[^;]*\bProofBar\b/);
+  });
+
+  it("does NOT import any of the still-archived section components (IngredientScience / FounderStory / FindUsTeaser / CTABlock)", () => {
+    const src = fs.readFileSync(
+      path.join(process.cwd(), "app/page.tsx"),
+      "utf8",
+    );
+    // These four were part of the legacy home page but are deliberately NOT
+    // being restored in AC-1. The redesigned home is 5 sections; these stay archived.
+    const stillArchived = [
       "IngredientScience",
       "FounderStory",
       "FindUsTeaser",
       "CTABlock",
     ];
-    const offenders = archived.filter((name) =>
+    const offenders = stillArchived.filter((name) =>
       new RegExp(`import[^;]*\\b${name}\\b`).test(src),
     );
     expect(offenders).toEqual([]);
@@ -75,15 +115,12 @@ describe("app/page.tsx — AC-4 (home is demand-capture landing)", () => {
       path.join(process.cwd(), "app/page.tsx"),
       "utf8",
     );
-    // Match the function signature: export default (async)? function HomePage(<sig>)
     const m = src.match(
       /export\s+default\s+(?:async\s+)?function\s+HomePage\s*\(([^)]*)\)/,
     );
     expect(m).not.toBeNull();
     const signature = (m?.[1] ?? "").trim();
-    // Empty signature is the only acceptable form.
     expect(signature).toBe("");
-    // Belt-and-braces: the word "searchParams" must not appear in the file.
     expect(src).not.toMatch(/searchParams/);
   });
 });
@@ -91,9 +128,7 @@ describe("app/page.tsx — AC-4 (home is demand-capture landing)", () => {
 describe("AC-4 cross-cut guard — no /find-us hrefs in components/ or app/", () => {
   /**
    * Walk components/ and app/ for .ts(x) files and assert no string
-   * "/find-us" survives the migration. The /api/launch-vote/route.ts
-   * file is allowed to mention "/find-us" inside comments per the
-   * contract (documents the API's backwards-compat path).
+   * "/find-us" survives the migration.
    */
   function* walk(dir: string): Generator<string> {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -103,7 +138,7 @@ describe("AC-4 cross-cut guard — no /find-us hrefs in components/ or app/", ()
     }
   }
 
-  it("contains no '/find-us' string in any tsx/ts file (api comments excepted)", () => {
+  it("contains no '/find-us' string in any tsx/ts file", () => {
     const roots = ["components", "app"];
     const offenders: string[] = [];
     for (const root of roots) {
@@ -111,7 +146,6 @@ describe("AC-4 cross-cut guard — no /find-us hrefs in components/ or app/", ()
       if (!fs.existsSync(abs)) continue;
       for (const f of walk(abs)) {
         if (!/\.(tsx|ts)$/.test(f)) continue;
-        if (f.endsWith(path.join("api", "launch-vote", "route.ts"))) continue;
         const src = fs.readFileSync(f, "utf8");
         if (src.includes("/find-us")) offenders.push(path.relative(process.cwd(), f));
       }
