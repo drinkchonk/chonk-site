@@ -7,6 +7,7 @@ import {
   DROP_RACE_LOCATIONS,
   type DropRaceLocation,
 } from "@/lib/data/drop-race-locations";
+import { cupMarkerHtml } from "@/components/ui/CupMarker";
 
 type LocalLocation = DropRaceLocation;
 
@@ -88,10 +89,10 @@ export default function DropRaceLeaflet() {
         const markerGroup = L.layerGroup().addTo(map);
         for (const loc of locations) {
           const icon = L.divIcon({
-            className: "chonk-pin-icon",
-            html: `<div class="chonk-pin ${loc.kind === "gym" ? "gym" : "zone"}"><div class="halo"></div><div class="core">${loc.votes}</div></div>`,
-            iconSize: [44, 44],
-            iconAnchor: [22, 22],
+            className: "chonk-cup-marker-icon",
+            html: cupMarkerHtml(loc),
+            iconSize: [56, 56],
+            iconAnchor: [28, 28],
           });
           const m = L.marker([loc.lat, loc.lng], { icon }).addTo(markerGroup);
           m.bindTooltip(
