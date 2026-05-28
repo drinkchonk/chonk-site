@@ -1,10 +1,11 @@
 /**
  * Drop Race Map — gyms + suburb demand zones around the City of Stirling,
- * Perth. Powers the Leaflet pins on the home demand-capture landing.
+ * Perth. Powers the Leaflet cup-marker pins on the home page.
  *
  * Coordinates are real-ish; the `votes` count is the seed vote tally
- * shown on first paint. Final values come from the Google Form tracker
- * downstream, not from this file.
+ * shown on first paint. Marker clicks bump the matched location's count
+ * in local React state (no persistence yet — see chonk-home-redesign
+ * harness, Sprint 1, vote-only marker click).
  */
 
 export type DropRaceLocationKind = "gym" | "suburb";
