@@ -29,6 +29,10 @@ export default function DropRaceLeaflet() {
     DROP_RACE_LOCATIONS.map((l) => ({ ...l })),
   );
   const [modalLocationId, setModalLocationId] = useState<string | null>(null);
+  // votedLocationId mirrors hasVotedRef but as state — it drives the
+  // post-submit confirmation banner re-render. The ref handles click-time
+  // gating; state handles render-time UI.
+  const [votedLocationId, setVotedLocationId] = useState<string | null>(null);
   // hasVotedRef holds the locationId this browser previously voted for, or
   // null. Stored in a ref (not state) so the click-handler closure reads the
   // CURRENT value at click-time rather than the snapshot captured when the
@@ -37,11 +41,15 @@ export default function DropRaceLeaflet() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Hydration: read localStorage AFTER mount only (SSR-safe). Returning
-  // voters get the gate engaged before their first click.
+  // voters get the gate engaged AND the banner rendered before their first
+  // click.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("chonk:launchVote:voted");
-    if (stored) hasVotedRef.current = stored;
+    if (stored) {
+      hasVotedRef.current = stored;
+      setVotedLocationId(stored);
+    }
   }, []);
 
   const totalVotes = useMemo(
@@ -203,6 +211,28 @@ export default function DropRaceLeaflet() {
           >
             Tap your gym or suburb to lock a vote.
           </p>
+          {votedLocationId && (
+            <div
+              role="status"
+              className="text-eyebrow"
+              style={{
+                background: "var(--color-pink)",
+                color: "var(--color-ink)",
+                padding: "8px 14px",
+                borderRadius: "var(--radius-pill)",
+                marginTop: 10,
+                boxShadow: "var(--shadow-card)",
+                display: "inline-block",
+              }}
+            >
+              ✓ Vote locked for{" "}
+              {
+                DROP_RACE_LOCATIONS.find((l) => l.id === votedLocationId)
+                  ?.name
+              }
+              . One per person — see you at the drop.
+            </div>
+          )}
         </div>
 
         <div
@@ -322,6 +352,8 @@ export default function DropRaceLeaflet() {
             // Keep the ref in sync so a same-session second click is gated
             // before the next page load picks up localStorage on hydration.
             hasVotedRef.current = target.id;
+            // State drives the post-submit banner re-render.
+            setVotedLocationId(target.id);
           }
           setModalLocationId(null);
         }}
