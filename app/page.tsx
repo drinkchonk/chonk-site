@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import DropRaceLeaflet from "@/components/sections/DropRaceLeaflet";
+import HeroLab from "@/components/sections/HeroLab";
+import FlavourGrid from "@/components/sections/FlavourGrid";
+import ComparisonSection from "@/components/sections/ComparisonSection";
+import ProofBar from "@/components/sections/ProofBar";
 
 export const metadata: Metadata = {
   title: "Chonk — Where should we drop first?",
@@ -8,5 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <DropRaceLeaflet />;
+  return (
+    <>
+      <DropRaceLeaflet />
+      <HeroLab />
+      <FlavourGrid />
+      <ComparisonSection />
+      <ProofBar />
+    </>
+  );
 }
