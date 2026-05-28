@@ -31,18 +31,21 @@ jest.mock("leaflet", () => {
   };
   const mapInstance = {
     setView: jest.fn().mockReturnThis(),
+    fitBounds: jest.fn().mockReturnThis(),
     addLayer: jest.fn().mockReturnThis(),
     removeLayer: jest.fn(),
     remove: jest.fn(),
     on: jest.fn().mockReturnThis(),
     off: jest.fn().mockReturnThis(),
   };
+  const boundsObject = { pad: jest.fn().mockReturnThis() };
   const L = {
     map: jest.fn(() => mapInstance),
     tileLayer: jest.fn(() => tile),
     divIcon: jest.fn(() => ({})),
     marker: jest.fn(() => marker),
     layerGroup: jest.fn(() => layerGroup),
+    latLngBounds: jest.fn(() => boundsObject),
   };
   return { __esModule: true, default: L, ...L };
 });
@@ -114,6 +117,64 @@ describe("<DropRaceLeaflet />", () => {
   it("renders the 'Current Drop Race' leaderboard heading", async () => {
     await renderComponent();
     expect(screen.getByText(/Current Drop Race/i)).toBeInTheDocument();
+  });
+
+  describe("AC-2: frozen map + auto-fit bounds", () => {
+    it("L.map is called with all six interaction-disabling options (frozen view)", async () => {
+      await renderComponent();
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await waitFor(() => expect(L.map).toHaveBeenCalled());
+
+      const opts = L.map.mock.calls[0][1];
+      // All six interaction surfaces are locked. Each false is load-bearing —
+      // a stray `true` (or missing key) means a way for users to break the view.
+      expect(opts).toMatchObject({
+        dragging: false,
+        scrollWheelZoom: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+      });
+    });
+
+    it("L.latLngBounds is called with all 12 marker [lat,lng] pairs", async () => {
+      await renderComponent();
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await waitFor(() => expect(L.latLngBounds).toHaveBeenCalled());
+
+      const arg = L.latLngBounds.mock.calls[0][0];
+      expect(arg).toHaveLength(DROP_RACE_LOCATIONS.length);
+      for (const loc of DROP_RACE_LOCATIONS) {
+        expect(arg).toContainEqual([loc.lat, loc.lng]);
+      }
+    });
+
+    it("map.fitBounds is called (with padding) instead of setView", async () => {
+      await renderComponent();
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await waitFor(() =>
+        expect(L.map.mock.results[0].value.fitBounds).toHaveBeenCalled(),
+      );
+
+      const mapInstance = L.map.mock.results[0].value;
+      const fitBoundsCall = mapInstance.fitBounds.mock.calls[0];
+      // Second arg should include padding so markers don't kiss the viewport edge.
+      expect(fitBoundsCall[1]).toMatchObject({
+        padding: expect.any(Array),
+      });
+      // The interaction lock makes setView obsolete; we shouldn't be calling it.
+      expect(mapInstance.setView).not.toHaveBeenCalled();
+    });
   });
 
   describe("AC-4: vote-only marker click (Google Forms removed)", () => {
