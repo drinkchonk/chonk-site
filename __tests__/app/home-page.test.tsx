@@ -138,7 +138,13 @@ describe("AC-4 cross-cut guard — no /find-us hrefs in components/ or app/", ()
     }
   }
 
-  it("contains no '/find-us' string in any tsx/ts file", () => {
+  it("contains no quoted '/find-us' URL in any tsx/ts file", () => {
+    // Tightened from bare `src.includes("/find-us")` — that false-positived
+    // on inert documentation comments. The real risk this Poka-Yoke catches
+    // is a live URL reference (fetch target, <Link href>, route segment),
+    // which is always quoted. Comment text mentioning `/find-us` for
+    // historical context is harmless and now permitted.
+    const QUOTED_FIND_US = /['"`]\/find-us\b/;
     const roots = ["components", "app"];
     const offenders: string[] = [];
     for (const root of roots) {
@@ -147,7 +153,7 @@ describe("AC-4 cross-cut guard — no /find-us hrefs in components/ or app/", ()
       for (const f of walk(abs)) {
         if (!/\.(tsx|ts)$/.test(f)) continue;
         const src = fs.readFileSync(f, "utf8");
-        if (src.includes("/find-us")) offenders.push(path.relative(process.cwd(), f));
+        if (QUOTED_FIND_US.test(src)) offenders.push(path.relative(process.cwd(), f));
       }
     }
     expect(offenders).toEqual([]);
