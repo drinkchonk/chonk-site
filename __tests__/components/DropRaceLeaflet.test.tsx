@@ -254,6 +254,39 @@ describe("<DropRaceLeaflet />", () => {
       ).toContain(String(initialTotal));
     });
 
+    it("AC-3: when localStorage 'chonk:launchVote:voted' is set, clicking does NOT open the modal and does NOT bump votes", async () => {
+      // Gate must be set BEFORE render so the hydration effect picks it up.
+      window.localStorage.setItem(
+        "chonk:launchVote:voted",
+        DROP_RACE_LOCATIONS[0].id,
+      );
+
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+      await renderComponent();
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+
+      const marker = L.marker.mock.results[0].value;
+      const clickHandler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+      act(() => clickHandler());
+
+      // Gate engaged — modal stays closed, vote count unchanged.
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(
+        screen.getByTestId("drop-race-total-votes").textContent,
+      ).toContain(String(initialTotal));
+    });
+
     it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
       await renderComponent();
       expect(
