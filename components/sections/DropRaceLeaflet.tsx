@@ -8,6 +8,9 @@ import {
   type DropRaceLocation,
 } from "@/lib/data/drop-race-locations";
 import { cupMarkerHtml } from "@/components/ui/CupMarker";
+import DropRaceVoteModal, {
+  type DropRaceVoteTarget,
+} from "@/components/forms/DropRaceVoteModal";
 
 type LocalLocation = DropRaceLocation;
 
@@ -25,6 +28,7 @@ export default function DropRaceLeaflet() {
   const [locations, setLocations] = useState<LocalLocation[]>(() =>
     DROP_RACE_LOCATIONS.map((l) => ({ ...l })),
   );
+  const [modalLocationId, setModalLocationId] = useState<string | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const totalVotes = useMemo(
@@ -99,7 +103,7 @@ export default function DropRaceLeaflet() {
             `<strong>${loc.name}</strong><br/><span style="opacity:.7">${loc.kind === "gym" ? "Gym" : "Zone"} · ${loc.suburb}</span>`,
             { direction: "top", offset: [0, -10] },
           );
-          m.on("click", () => bumpVote(loc.id));
+          m.on("click", () => setModalLocationId(loc.id));
         }
         cleanup = () => map.remove();
       } catch {
@@ -113,6 +117,15 @@ export default function DropRaceLeaflet() {
       if (cleanup) cleanup();
     };
   }, [locations]);
+
+  const modalTarget: DropRaceVoteTarget = modalLocationId
+    ? (() => {
+        const loc = DROP_RACE_LOCATIONS.find((l) => l.id === modalLocationId);
+        return loc
+          ? { id: loc.id, name: loc.name, suburb: loc.suburb, kind: loc.kind }
+          : null;
+      })()
+    : null;
 
   return (
     <section
@@ -275,6 +288,13 @@ export default function DropRaceLeaflet() {
           ))}
         </ol>
       </div>
+
+      <DropRaceVoteModal
+        open={modalLocationId !== null}
+        target={modalTarget}
+        onClose={() => setModalLocationId(null)}
+        onSubmitted={() => setModalLocationId(null)}
+      />
     </section>
   );
 }
