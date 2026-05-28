@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Kaizen: stale Claude worktree directories (sibling working trees from
+    // prior /tdd-harness or /ultraplan sessions) pollute lint with thousands
+    // of false positives in .next/** build artifacts and unrelated old code.
+    // They're not source — they're scratch space for past agent runs.
+    ".claude/**",
+    // Test coverage HTML report is generated artifact; not source.
+    "coverage/**",
   ]),
 ]);
 
