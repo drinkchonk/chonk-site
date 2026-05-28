@@ -29,7 +29,20 @@ export default function DropRaceLeaflet() {
     DROP_RACE_LOCATIONS.map((l) => ({ ...l })),
   );
   const [modalLocationId, setModalLocationId] = useState<string | null>(null);
+  // hasVotedRef holds the locationId this browser previously voted for, or
+  // null. Stored in a ref (not state) so the click-handler closure reads the
+  // CURRENT value at click-time rather than the snapshot captured when the
+  // Leaflet map was built — flipping the gate doesn't force a map rebuild.
+  const hasVotedRef = useRef<string | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Hydration: read localStorage AFTER mount only (SSR-safe). Returning
+  // voters get the gate engaged before their first click.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("chonk:launchVote:voted");
+    if (stored) hasVotedRef.current = stored;
+  }, []);
 
   const totalVotes = useMemo(
     () => locations.reduce((acc, l) => acc + l.votes, 0),
@@ -103,7 +116,11 @@ export default function DropRaceLeaflet() {
             `<strong>${loc.name}</strong><br/><span style="opacity:.7">${loc.kind === "gym" ? "Gym" : "Zone"} · ${loc.suburb}</span>`,
             { direction: "top", offset: [0, -10] },
           );
-          m.on("click", () => setModalLocationId(loc.id));
+          m.on("click", () => {
+            // Closure reads ref at click-time — always current, never stale.
+            if (hasVotedRef.current) return;
+            setModalLocationId(loc.id);
+          });
         }
         cleanup = () => map.remove();
       } catch {
