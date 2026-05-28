@@ -119,6 +119,45 @@ describe("<DropRaceLeaflet />", () => {
     expect(screen.getByText(/Current Drop Race/i)).toBeInTheDocument();
   });
 
+  describe("AC-3: cup-marker integration", () => {
+    it("L.divIcon is called 12 times with cup-marker HTML", async () => {
+      await renderComponent();
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await waitFor(() =>
+        expect(L.divIcon).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length),
+      );
+
+      // Every marker uses the cup-marker shape — none are left as the
+      // legacy .chonk-pin div.
+      for (let i = 0; i < L.divIcon.mock.calls.length; i++) {
+        const opts = L.divIcon.mock.calls[i][0];
+        expect(opts.html).toContain("chonk-cup-marker");
+        expect(opts.html).toContain("/chonk-cup-marker.webm");
+      }
+    });
+
+    it("each marker's HTML reflects the matching location's vote count", async () => {
+      await renderComponent();
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await waitFor(() =>
+        expect(L.divIcon).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length),
+      );
+
+      // The iteration order in DropRaceLeaflet mirrors DROP_RACE_LOCATIONS,
+      // so call i corresponds to location i.
+      for (let i = 0; i < DROP_RACE_LOCATIONS.length; i++) {
+        const opts = L.divIcon.mock.calls[i][0];
+        expect(opts.html).toContain(String(DROP_RACE_LOCATIONS[i].votes));
+      }
+    });
+  });
+
   describe("AC-2: frozen map + auto-fit bounds", () => {
     it("L.map is called with all six interaction-disabling options (frozen view)", async () => {
       await renderComponent();

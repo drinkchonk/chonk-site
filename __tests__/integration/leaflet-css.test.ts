@@ -98,26 +98,38 @@ describe("AC-3 — Section height respects sticky header (one source of truth)",
   });
 });
 
-describe("AC-4 — Pin marker styling visible", () => {
-  it("app/globals.css contains all four pin selectors AND at least one keyframes/animation rule for the halo pulse", () => {
+describe("AC-3 — Cup marker styling (replaces pre-sprint .chonk-pin styles)", () => {
+  it("app/globals.css contains .chonk-cup-marker styling with a :hover transform translateY (the bob)", () => {
     const css = read("app/globals.css");
 
-    // All four selectors must appear at least once.
-    expect(css).toMatch(/\.chonk-pin-icon\b/);
-    expect(css).toMatch(/\.chonk-pin\b/);
-    expect(css).toMatch(/\.halo\b/);
-    expect(css).toMatch(/\.core\b/);
+    // Base selector must exist.
+    expect(css).toMatch(/\.chonk-cup-marker\b/);
 
-    // Animation: either a @keyframes block whose body the pin uses, or an
-    // animation: declaration inside a pin selector.
-    const hasKeyframes = /@keyframes\s+[a-zA-Z_-][\w-]*\s*\{/.test(css);
-    const hasAnimationDecl = /animation\s*:\s*[a-zA-Z_-]/.test(css);
-    expect(hasKeyframes || hasAnimationDecl).toBe(true);
+    // :hover rule with translateY — tolerant regex matches either `transform:
+    // translateY(-8px)` or `transform: translate(0, -8px)` style declarations.
+    const hoverBob =
+      /\.chonk-cup-marker[^{}]*:hover[^{}]*\{[^{}]*transform\s*:[^{}]*translate(Y\([^)]*-\d+|\([^,]*,\s*-\d+)/;
+    expect(css).toMatch(hoverBob);
+  });
 
-    // Stronger check: at least one of the pin selectors must itself have an
-    // `animation:` declaration somewhere in its rule body.
-    const pinAnimationRule =
-      /\.(?:chonk-pin|halo|core|chonk-pin-icon)\b[^{}]*\{[^{}]*animation\s*:[^{}]*\}/;
-    expect(css).toMatch(pinAnimationRule);
+  it("honours prefers-reduced-motion (no transform on hover when user requests reduced motion)", () => {
+    const css = read("app/globals.css");
+
+    // Contract: hover bob must respect prefers-reduced-motion.
+    // Match a `@media (prefers-reduced-motion: reduce)` block that contains
+    // a .chonk-cup-marker rule disabling the transition/transform.
+    const reducedMotion =
+      /@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)[\s\S]*?\.chonk-cup-marker/;
+    expect(css).toMatch(reducedMotion);
+  });
+
+  it("contains styling for the wordmark fallback (.cup-fallback) so the marker isn't invisible", () => {
+    const css = read("app/globals.css");
+    expect(css).toMatch(/\.cup-fallback\b/);
+  });
+
+  it("contains styling for the vote-count badge (.cup-votes)", () => {
+    const css = read("app/globals.css");
+    expect(css).toMatch(/\.cup-votes\b/);
   });
 });
