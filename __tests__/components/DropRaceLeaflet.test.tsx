@@ -403,6 +403,46 @@ describe("<DropRaceLeaflet />", () => {
       );
     });
 
+    it("AC-4 banner: after a successful submit, a '✓ Vote locked for {Name}' banner appears", async () => {
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+      await renderComponent();
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+
+      const clickedLoc = DROP_RACE_LOCATIONS[0]; // Revo Scarborough (gym)
+      const marker = L.marker.mock.results[0].value;
+      const clickHandler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+
+      // No banner before submit.
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+      act(() => clickHandler());
+      await waitFor(() =>
+        expect(screen.getByRole("dialog")).toBeInTheDocument(),
+      );
+
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/First name/i), "Sam");
+      await user.type(screen.getByLabelText(/Email/i), "sam@example.com");
+      await user.click(
+        screen.getByRole("button", { name: /Submit My Vote/i }),
+      );
+
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+      );
+
+      // Banner appears with the location's name in the copy.
+      const banner = screen.getByRole("status");
+      expect(banner).toHaveTextContent(/Vote locked for/i);
+      expect(banner).toHaveTextContent(new RegExp(clickedLoc.name, "i"));
+    });
+
     it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
       await renderComponent();
       expect(
