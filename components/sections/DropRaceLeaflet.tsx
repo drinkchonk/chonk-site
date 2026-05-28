@@ -55,11 +55,23 @@ export default function DropRaceLeaflet() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const L: any = (leaflet as any).default ?? leaflet;
         const map = L.map(mapContainerRef.current, {
-          minZoom: 12,
-          maxZoom: 16,
           zoomControl: false,
           attributionControl: true,
-        }).setView([-31.89, 115.79], 13);
+          // Frozen view: every interaction surface is locked so the map
+          // stays clamped to the bounds we compute below. No zoom controls,
+          // no drag, no scroll-zoom, no pinch-zoom, no double-click-zoom,
+          // no rubber-band box-zoom, no keyboard pans/zooms.
+          dragging: false,
+          scrollWheelZoom: false,
+          touchZoom: false,
+          doubleClickZoom: false,
+          boxZoom: false,
+          keyboard: false,
+        });
+        const bounds = L.latLngBounds(
+          DROP_RACE_LOCATIONS.map((l) => [l.lat, l.lng] as [number, number]),
+        );
+        map.fitBounds(bounds, { padding: [40, 40] });
         L.tileLayer(
           "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
           {
