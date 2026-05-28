@@ -1,7 +1,14 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DROP_RACE_LOCATIONS } from "@/lib/data/drop-race-locations";
 
@@ -152,5 +159,68 @@ describe("<DropRaceLeaflet />", () => {
   it("renders the 'Current Drop Race' leaderboard heading", async () => {
     await renderComponent();
     expect(screen.getByText(/Current Drop Race/i)).toBeInTheDocument();
+  });
+
+  describe("AC-4: vote-only marker click (Google Forms removed)", () => {
+    it("clicking a map marker increments that location's vote count by +1 without opening a modal", async () => {
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+
+      await renderComponent();
+
+      // Wait for the async useEffect (Leaflet dynamic import + map setup) to
+      // create all 12 markers. The shared marker-mock captures every .on()
+      // call across all markers.
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+      expect(
+        screen.getByTestId("drop-race-total-votes").textContent,
+      ).toContain(String(initialTotal));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      // Pluck the first marker's click handler from the mock's call log.
+      const marker = L.marker.mock.results[0].value;
+      const clickCalls = marker.on.mock.calls.filter(
+        (c: unknown[]) => c[0] === "click",
+      );
+      expect(clickCalls.length).toBe(DROP_RACE_LOCATIONS.length);
+
+      const firstHandler = clickCalls[0][1];
+      act(() => firstHandler());
+
+      // After click: total votes +1, NO modal opened.
+      await waitFor(() => {
+        expect(
+          screen.getByTestId("drop-race-total-votes").textContent,
+        ).toContain(String(initialTotal + 1));
+      });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
+      await renderComponent();
+      expect(
+        screen.queryByRole("button", { name: /Vote My Gym/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Join First-Drop List/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("copy no longer claims 'Votes locked live' (honest about local-only state)", async () => {
+      await renderComponent();
+      expect(screen.queryByText(/Votes locked live/i)).not.toBeInTheDocument();
+      // Replacement copy steers the user toward the marker-click action.
+      expect(
+        screen.getByText(/Tap your gym or suburb to lock a vote/i),
+      ).toBeInTheDocument();
+    });
   });
 });
