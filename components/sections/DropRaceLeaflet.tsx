@@ -42,12 +42,20 @@ export default function DropRaceLeaflet() {
 
   // Hydration: read localStorage AFTER mount only (SSR-safe). Returning
   // voters get the gate engaged AND the banner rendered before their first
-  // click.
+  // click. The setState-in-effect here IS the canonical SSR-safe pattern:
+  // localStorage is unavailable during SSR, so the initial state is `null`,
+  // and this effect promotes the stored value after mount. The
+  // react-hooks/set-state-in-effect rule warns about "cascading renders" —
+  // which is exactly the intended behavior (server: no banner; client:
+  // banner appears for returning voters). The alternative would be
+  // useSyncExternalStore, but that adds significant complexity for a
+  // one-shot read with no external mutation source.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("chonk:launchVote:voted");
     if (stored) {
       hasVotedRef.current = stored;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVotedLocationId(stored);
     }
   }, []);
