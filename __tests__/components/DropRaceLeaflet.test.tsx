@@ -216,47 +216,42 @@ describe("<DropRaceLeaflet />", () => {
     });
   });
 
-  describe("AC-4: vote-only marker click (Google Forms removed)", () => {
-    it("clicking a map marker increments that location's vote count by +1 without opening a modal", async () => {
+  describe("AC-4 (revised): marker click opens vote modal; localStorage gate enforces one open per browser", () => {
+    beforeEach(() => {
+      window.localStorage.clear();
+    });
+
+    it("AC-2: clicking a marker opens the vote modal and does NOT increment votes yet", async () => {
       const leaflet = await import("leaflet");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const L = leaflet.default as any;
-
       await renderComponent();
-
-      // Wait for the async useEffect (Leaflet dynamic import + map setup) to
-      // create all 12 markers. The shared marker-mock captures every .on()
-      // call across all markers.
       await waitFor(() => {
         expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
       });
+
+      // No modal before click.
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      const marker = L.marker.mock.results[0].value;
+      const clickHandler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+      expect(clickHandler).toBeDefined();
 
       const initialTotal = DROP_RACE_LOCATIONS.reduce(
         (acc, l) => acc + l.votes,
         0,
       );
+      act(() => clickHandler());
+
+      // Modal opens; vote count unchanged (votes only bump after submit).
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+      });
       expect(
         screen.getByTestId("drop-race-total-votes").textContent,
       ).toContain(String(initialTotal));
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-
-      // Pluck the first marker's click handler from the mock's call log.
-      const marker = L.marker.mock.results[0].value;
-      const clickCalls = marker.on.mock.calls.filter(
-        (c: unknown[]) => c[0] === "click",
-      );
-      expect(clickCalls.length).toBe(DROP_RACE_LOCATIONS.length);
-
-      const firstHandler = clickCalls[0][1];
-      act(() => firstHandler());
-
-      // After click: total votes +1, NO modal opened.
-      await waitFor(() => {
-        expect(
-          screen.getByTestId("drop-race-total-votes").textContent,
-        ).toContain(String(initialTotal + 1));
-      });
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
