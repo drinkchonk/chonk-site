@@ -8,6 +8,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { DROP_RACE_LOCATIONS } from "@/lib/data/drop-race-locations";
 
 /**
@@ -285,6 +286,72 @@ describe("<DropRaceLeaflet />", () => {
       expect(
         screen.getByTestId("drop-race-total-votes").textContent,
       ).toContain(String(initialTotal));
+    });
+
+    it("AC-4: submitting the form bumps the vote by +1, sets localStorage, and closes the modal", async () => {
+      // The outer beforeEach already mocked global.fetch as a plain object
+      // returning { ok: true, json: () => ({ok: true}) } — re-use it (jsdom
+      // doesn't define the Response constructor, so jest.spyOn(global,"fetch")
+      // .mockResolvedValue(new Response(...)) crashes with ReferenceError).
+      const fetchMock = global.fetch as jest.Mock;
+
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+      await renderComponent();
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+
+      const clickedLoc = DROP_RACE_LOCATIONS[0]; // Revo Scarborough (gym)
+      const marker = L.marker.mock.results[0].value;
+      const clickHandler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+
+      act(() => clickHandler());
+      await waitFor(() =>
+        expect(screen.getByRole("dialog")).toBeInTheDocument(),
+      );
+
+      // Gym target — suburb + gym fields are pre-filled from target prop.
+      // Only name + email are required to fill manually.
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/First name/i), "Sam");
+      await user.type(screen.getByLabelText(/Email/i), "sam@example.com");
+
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+      await user.click(
+        screen.getByRole("button", { name: /Submit My Vote/i }),
+      );
+
+      // Confirm the POST landed on /api/launch-vote.
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          "/api/launch-vote",
+          expect.objectContaining({ method: "POST" }),
+        );
+      });
+
+      // (a) Vote count bumped by exactly +1.
+      await waitFor(() => {
+        expect(
+          screen.getByTestId("drop-race-total-votes").textContent,
+        ).toContain(String(initialTotal + 1));
+      });
+
+      // (b) localStorage gate engaged with the clicked locationId.
+      expect(window.localStorage.getItem("chonk:launchVote:voted")).toBe(
+        clickedLoc.id,
+      );
+
+      // (c) Modal removed from DOM.
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      });
     });
 
     it("does not render the 'Vote My Gym' or 'Join First-Drop List' modal-opener CTAs", async () => {
