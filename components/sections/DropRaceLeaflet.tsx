@@ -31,12 +31,13 @@ type LocalLocation = DropRaceLocation;
  */
 type CinematicState = "idle" | "playing" | "voting" | "done";
 
-// 5s cinematic: zoom 1.0s, pause 0.5s, lift 1.25s, over_straw 0.75s,
-// descend 0.75s, helix 0.75s. The 0.5s pause after the establishing
-// zoom is Sam's explicit ask — without it the camera lift bleeds
-// into the zoom and reads as a single tilt instead of two motions.
-// Keep this in sync with `cinematicDurMs` in public/chonk-cinematic.html
-// (locked at 5000 by the chonk-cinematic.test.ts duration assertion).
+// 5s cinematic: zoom 1.5s, pause 0.5s, lift 1.1s, over_straw 0.6s,
+// descend 0.65s, helix 0.65s. The slow zoom + 0.5s pause are Sam's
+// asks (iterations 2 + 3) — without the pause the lift bleeds into
+// the zoom; with a fast zoom the establishing shot reads as messy.
+// The cup vortex-spins during zoom + pause, then locks for the camera
+// arc (lift onwards). Keep this in sync with `cinematicDurMs` in
+// public/chonk-cinematic.html (locked at 5000 by the cinematic test).
 const CINEMATIC_DURATION_MS = 5000;
 // Safety margin: if the iframe stalls and never emits chonk-cinematic-done,
 // the React-side timeout still advances state so the user is never
