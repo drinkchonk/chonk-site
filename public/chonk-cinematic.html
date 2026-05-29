@@ -90,21 +90,40 @@ import * as THREE from 'three';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 /* =============================================================================
- * CHONK SHAKES — hero cup, studio product-shot build
+ * CHONK SHAKES — click cinematic (iframed from DropRaceLeaflet)
  * ---------------------------------------------------------------------------
- * Matches the reference image: clean off-white backdrop, softly-lit pink
- * ribbed paper cup with frosted translucent dome lid and near-vertical straw.
+ * This file is a derivative of public/chonk-hero-lab.html with everything
+ * stripped that doesn't serve the click-to-fullscreen cinematic. It is
+ * NOT used standalone; the React side iframes it pre-loaded and posts
+ * chonk-cinematic-play on pin click.
  *
- * Build order:
- *   1. renderer + camera
- *   2. neutral studio environment (PMREM from soft white/cream gradients)
- *   3. studio-grade 3-point lighting (no color-tinted rims)
- *   4. logo canvas texture ("chonk!" wordmark + leaf glyph + paper grain)
- *   5. cup body (LatheGeometry, tight ribs, top/bottom smoothly un-ribbed)
- *   6. bottom white base ring, custom lathe lid dome, skirt, seam, straw
- *   7. soft circular contact shadow on the backdrop
- *   8. subtle bloom (threshold high so it just kisses highlights)
- *   9. scroll-driven rotation + gentle idle bob; mouse parallax on camera
+ * Message protocol (parent ↔ iframe):
+ *   parent → iframe:
+ *     { type: 'chonk-cinematic-play', durationMs?: number }   default 5000
+ *     { type: 'chonk-cinematic-skip' }                          jumps to end
+ *     { type: 'chonk-cinematic-reset' }                         back to idle
+ *   iframe → parent (via parent.postMessage):
+ *     { type: 'chonk-cinematic-progress', progress: 0..1 }      ~20Hz
+ *     { type: 'chonk-cinematic-done' }                          once
+ *
+ * Six-stage K rig (5.0s @ default duration):
+ *     0.00–0.20  zoom_start → zoom_end   1.00s push-in
+ *     0.20–0.30  hold at zoom_end        0.50s pause (Sam's beat)
+ *     0.30–0.55  zoom_end → birds_eye    1.25s lift up + over
+ *     0.55–0.70  birds_eye → over_straw  0.75s slide to straw mouth
+ *     0.70–0.85  over_straw → descend    0.75s drop through the straw
+ *     0.85–1.00  descend → helix         0.75s pitch into darkness
+ *
+ * Intentionally absent (every per-frame jitter source the lab carries):
+ *     - mouse parallax + drag-to-spin handlers
+ *     - vortex spin-up (cup does not rotate during the cinematic)
+ *     - breath-scale pulse + idle bob + sway
+ *     - host-page scroll readout (externalProgress is pinned at 0
+ *       until the play clock starts driving it)
+ *
+ * Static lock for the contract above lives in:
+ *     __tests__/public/chonk-cinematic.test.ts          contract assertions
+ *     __tests__/public/chonk-cinematic-runtime.test.ts  AST orphan-ref scan
  * ===========================================================================*/
 (async function () {
   'use strict';

@@ -31,8 +31,18 @@ type LocalLocation = DropRaceLocation;
  */
 type CinematicState = "idle" | "playing" | "voting" | "done";
 
+// 5s cinematic: zoom 1.0s, pause 0.5s, lift 1.25s, over_straw 0.75s,
+// descend 0.75s, helix 0.75s. The 0.5s pause after the establishing
+// zoom is Sam's explicit ask — without it the camera lift bleeds
+// into the zoom and reads as a single tilt instead of two motions.
+// Keep this in sync with `cinematicDurMs` in public/chonk-cinematic.html
+// (locked at 5000 by the chonk-cinematic.test.ts duration assertion).
 const CINEMATIC_DURATION_MS = 5000;
-const CINEMATIC_TIMEOUT_MS = 5500; // safety: don't strand the user if the iframe never emits done
+// Safety margin: if the iframe stalls and never emits chonk-cinematic-done,
+// the React-side timeout still advances state so the user is never
+// stranded mid-cinematic. 500ms over the duration covers normal frame
+// jitter without forcing a premature jump.
+const CINEMATIC_TIMEOUT_MS = 5500;
 
 function aggregateSuburbVotes(locations: LocalLocation[]) {
   const byName = new Map<string, number>();
