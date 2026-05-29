@@ -117,4 +117,55 @@ describe("chonk-hero iframe asset", () => {
       expect(html).toMatch(/setClearColor\(0x0{6},\s*0\)/);
     });
   });
+
+  describe("cinematic-mode protocol (click-to-fullscreen dive sequence)", () => {
+    it("listens for chonk-cinematic-play, chonk-cinematic-skip, chonk-cinematic-reset", () => {
+      // The React side (DropRaceLeaflet) postMessages these three types
+      // on click / mid-cinematic skip / post-cinematic cleanup. The
+      // iframe must register handlers for all three.
+      expect(html).toContain("'chonk-cinematic-play'");
+      expect(html).toContain("'chonk-cinematic-skip'");
+      expect(html).toContain("'chonk-cinematic-reset'");
+      // Listener is attached to window message events, not e.g. document.
+      expect(html).toMatch(
+        /window\.addEventListener\(\s*['"]message['"]/,
+      );
+    });
+
+    it("emits chonk-cinematic-progress (mid-flight) and chonk-cinematic-done (completion)", () => {
+      // The React side uses cinematic-done to advance state (open the
+      // form or scroll to FlavourGrid). Without these emits the cinematic
+      // never terminates and the safety timeout has to fire — verify the
+      // primary path exists.
+      expect(html).toContain("'chonk-cinematic-progress'");
+      expect(html).toContain("'chonk-cinematic-done'");
+      // Emits target the host page (window.parent).
+      expect(html).toMatch(
+        /window\.parent\.postMessage\(\s*\{\s*type:\s*['"]chonk-cinematic-(progress|done)['"]/,
+      );
+    });
+
+    it("ships the two overlay DOM elements the cinematic fades through (#cinematicBlueprint, #cinematicBlack)", () => {
+      // The blueprint-blue grid overlay rises and falls across the middle
+      // of the timeline; the black overlay rises in the last 18% so the
+      // final frame dissolves cleanly into the next host content.
+      expect(html).toContain('id="cinematicBlueprint"');
+      expect(html).toContain('id="cinematicBlack"');
+    });
+
+    it("defines the cinematic camera dolly target (eased lerp from z=9.5 to z=0.6)", () => {
+      // The cinematic dollies the camera from idle position (0, 0.15, 9.5)
+      // toward the cup (0, 1.1, 0.6) over the timeline. This regression
+      // catches an accidental change to the dolly target — the "flying
+      // into the cup" read depends on hitting the inner cup body.
+      expect(html).toMatch(/lerp\(9\.5,\s*0\.6,/);
+      expect(html).toMatch(/lerp\(0\.15,\s*1\.1,/);
+    });
+
+    it("default cinematic duration is 3.5s (matches the React side's CINEMATIC_DURATION_MS)", () => {
+      // The iframe uses a default of 3500ms if the play message doesn't
+      // carry a durationMs. Keep these in sync with the React side.
+      expect(html).toMatch(/cinematicDurMs\s*=\s*[^;]*3500/);
+    });
+  });
 });

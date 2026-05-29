@@ -52,6 +52,7 @@ export default function FlavourGrid() {
   return (
     <section
       ref={sectionRef}
+      id="flavour-grid"
       className="section-padding"
       aria-label="Featured flavours"
     >

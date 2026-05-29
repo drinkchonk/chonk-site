@@ -51,8 +51,34 @@ jest.mock("leaflet", () => {
   return { __esModule: true, default: L, ...L };
 });
 
+// matchMedia helper — every test starts in reduced-motion mode so the
+// cinematic flow is bypassed and the existing assertions (click → modal)
+// keep their original semantics. The new "cinematic flow (motion-OK)"
+// describe-block flips this to exercise the cinematic path.
+//
+// Direct assignment (not Object.defineProperty) because jest.setup.ts
+// declares window.matchMedia as `writable: true, configurable: false`,
+// so we can only overwrite the value, not redefine the descriptor.
+function setMatchMediaReducedMotion(reduced: boolean) {
+  window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+    matches: reduced && query.includes("prefers-reduced-motion"),
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  })) as any;
+}
+
 describe("<DropRaceLeaflet />", () => {
   beforeEach(() => {
+    // Default: reduced-motion = true so the click handler takes the
+    // direct-modal branch. Existing tests written against that flow
+    // keep working without modification.
+    setMatchMediaReducedMotion(true);
     // jsdom doesn't implement scrollIntoView, which Leaflet/popups can call.
     Element.prototype.scrollIntoView = jest.fn();
     global.fetch = jest.fn().mockResolvedValue({
@@ -132,15 +158,15 @@ describe("<DropRaceLeaflet />", () => {
       );
 
       // Every marker uses the cup-marker shape — none are left as the
-      // legacy .chonk-pin div.
+      // legacy .chonk-pin div — and embeds the live 3D hero in marker mode.
       for (let i = 0; i < L.divIcon.mock.calls.length; i++) {
         const opts = L.divIcon.mock.calls[i][0];
         expect(opts.html).toContain("chonk-cup-marker");
-        expect(opts.html).toContain("/chonk-cup-marker.webm");
+        expect(opts.html).toContain("/chonk-hero.html#marker");
       }
     });
 
-    it("each marker's HTML reflects the matching location's vote count", async () => {
+    it("marker iconSize is 40x40 centered (iconAnchor 20,20) so the cup sits exactly on the lat/lng", async () => {
       await renderComponent();
       const leaflet = await import("leaflet");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,11 +176,10 @@ describe("<DropRaceLeaflet />", () => {
         expect(L.divIcon).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length),
       );
 
-      // The iteration order in DropRaceLeaflet mirrors DROP_RACE_LOCATIONS,
-      // so call i corresponds to location i.
-      for (let i = 0; i < DROP_RACE_LOCATIONS.length; i++) {
+      for (let i = 0; i < L.divIcon.mock.calls.length; i++) {
         const opts = L.divIcon.mock.calls[i][0];
-        expect(opts.html).toContain(String(DROP_RACE_LOCATIONS[i].votes));
+        expect(opts.iconSize).toEqual([40, 40]);
+        expect(opts.iconAnchor).toEqual([20, 20]);
       }
     });
   });
@@ -460,6 +485,201 @@ describe("<DropRaceLeaflet />", () => {
       expect(
         screen.getByText(/Tap your gym or suburb to lock a vote/i),
       ).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Click-cinematic flow (motion-OK).
+   *
+   * In motion-OK mode the pin click should:
+   *   1. flip the section's data-cinematic-state to 'playing'
+   *   2. NOT open the vote modal until the iframe emits chonk-cinematic-done
+   *   3. on done: open the modal (fresh voter) OR scroll to FlavourGrid
+   *      (returning voter)
+   *
+   * jsdom can't run the iframe's Three.js scene, so we dispatch the done
+   * message manually. The marker DOM is injected manually too because the
+   * test's mocked Leaflet doesn't actually render divIcons.
+   */
+  describe("AC-6: cinematic flow (motion-OK)", () => {
+    beforeEach(() => {
+      // Flip to motion-OK so the click handler takes the cinematic branch.
+      setMatchMediaReducedMotion(false);
+      window.localStorage.clear();
+    });
+
+    function injectMarker(locId: string) {
+      // The cinematic flow reads `document.querySelector('.chonk-cup-marker[data-loc-id=...]')`
+      // at click-time to capture the pin's screen rect. The mocked Leaflet
+      // never actually renders divIcons into the DOM, so we hand-inject a
+      // minimal stand-in. getBoundingClientRect on jsdom returns all zeros
+      // which is fine — the cinematic logic just needs a non-null element.
+      const el = document.createElement("div");
+      el.className = "chonk-cup-marker";
+      el.setAttribute("data-loc-id", locId);
+      // Anchor it in the body so getBoundingClientRect produces a real rect.
+      document.body.appendChild(el);
+      return el;
+    }
+
+    async function clickFirstMarker() {
+      const leaflet = await import("leaflet");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = leaflet.default as any;
+      await waitFor(() => {
+        expect(L.marker).toHaveBeenCalledTimes(DROP_RACE_LOCATIONS.length);
+      });
+      const marker = L.marker.mock.results[0].value;
+      const handler = marker.on.mock.calls.find(
+        (c: unknown[]) => c[0] === "click",
+      )?.[1] as () => void;
+      expect(handler).toBeDefined();
+      act(() => handler());
+    }
+
+    function dispatchCinematicDone() {
+      // The iframe would normally postMessage this; simulate it.
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent("message", {
+            data: { type: "chonk-cinematic-done" },
+          }),
+        );
+      });
+    }
+
+    it("fresh voter: click flips data-cinematic-state to 'playing' and does NOT open the modal until cinematic-done", async () => {
+      injectMarker(DROP_RACE_LOCATIONS[0].id);
+      await renderComponent();
+      await clickFirstMarker();
+
+      // Section reflects the cinematic state.
+      const section = screen.getByLabelText(
+        /Drop Race demand-capture landing/i,
+      );
+      expect(section.getAttribute("data-cinematic-state")).toBe("playing");
+
+      // Modal must NOT be open yet — the cinematic owns the visual until
+      // it emits done. (The form is composited on top at the final frame.)
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      // Iframe overlay is in the DOM with the active loc-id stamped on it.
+      const iframe = screen.getByTestId("chonk-cinematic-iframe");
+      expect(iframe.getAttribute("data-active-loc-id")).toBe(
+        DROP_RACE_LOCATIONS[0].id,
+      );
+
+      // Now simulate cinematic-done; modal must appear.
+      dispatchCinematicDone();
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+      });
+      // State should have advanced to 'voting' (form composited on top).
+      expect(section.getAttribute("data-cinematic-state")).toBe("voting");
+    });
+
+    it("returning voter: click plays cinematic but on done scrolls to FlavourGrid (no modal)", async () => {
+      // Engage the gate before render so the hydration effect picks it up.
+      window.localStorage.setItem(
+        "chonk:launchVote:voted",
+        DROP_RACE_LOCATIONS[0].id,
+      );
+      injectMarker(DROP_RACE_LOCATIONS[0].id);
+      await renderComponent();
+      await clickFirstMarker();
+
+      // Cinematic still plays for returning voters — they get the visual
+      // moment, just no form at the end.
+      const section = screen.getByLabelText(
+        /Drop Race demand-capture landing/i,
+      );
+      expect(section.getAttribute("data-cinematic-state")).toBe("playing");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      // On done: state goes to 'done', scrollIntoView is called for menu.
+      dispatchCinematicDone();
+      // Modal still must NOT appear for returning voters.
+      await waitFor(() => {
+        expect(section.getAttribute("data-cinematic-state")).toBe("done");
+      });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      // No vote bump (just clicking + watching cinematic isn't a vote).
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+      expect(
+        screen.getByTestId("drop-race-total-votes").textContent,
+      ).toContain(String(initialTotal));
+    });
+
+    it("fresh voter: completing the form after cinematic bumps the vote, locks localStorage, dissolves the overlay", async () => {
+      const fetchMock = global.fetch as jest.Mock;
+      const clickedLoc = DROP_RACE_LOCATIONS[0];
+      injectMarker(clickedLoc.id);
+      await renderComponent();
+      await clickFirstMarker();
+      dispatchCinematicDone();
+      await waitFor(() => {
+        expect(screen.getByRole("dialog")).toBeInTheDocument();
+      });
+
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/First name/i), "Sam");
+      await user.type(screen.getByLabelText(/Email/i), "sam@example.com");
+      const initialTotal = DROP_RACE_LOCATIONS.reduce(
+        (acc, l) => acc + l.votes,
+        0,
+      );
+      await user.click(
+        screen.getByRole("button", { name: /Submit My Vote/i }),
+      );
+
+      // Vote went out, bumped, locked.
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          "/api/launch-vote",
+          expect.objectContaining({ method: "POST" }),
+        );
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByTestId("drop-race-total-votes").textContent,
+        ).toContain(String(initialTotal + 1));
+      });
+      expect(window.localStorage.getItem("chonk:launchVote:voted")).toBe(
+        clickedLoc.id,
+      );
+
+      // Section state moves to 'done' (overlay dissolving).
+      const section = screen.getByLabelText(
+        /Drop Race demand-capture landing/i,
+      );
+      await waitFor(() => {
+        expect(section.getAttribute("data-cinematic-state")).toBe("done");
+      });
+    });
+
+    it("section data-cinematic-state attribute is 'idle' before any click", async () => {
+      await renderComponent();
+      const section = screen.getByLabelText(
+        /Drop Race demand-capture landing/i,
+      );
+      expect(section.getAttribute("data-cinematic-state")).toBe("idle");
+    });
+
+    it("cinematic iframe is mounted with src pointing at /chonk-hero.html#marker", async () => {
+      await renderComponent();
+      const iframe = screen.getByTestId(
+        "chonk-cinematic-iframe",
+      ) as HTMLIFrameElement;
+      // Must point at the same Three.js cup as the pin iframes — that's
+      // what gives the cinematic visual continuity with the clicked pin.
+      expect(iframe.getAttribute("src")).toMatch(
+        /^\/chonk-hero\.html#marker/,
+      );
+      // Eager-loaded so the scene is ready before any pin click.
+      expect(iframe.getAttribute("loading")).toBe("eager");
     });
   });
 });

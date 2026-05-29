@@ -1,10 +1,12 @@
 /**
  * @jest-environment jsdom
  *
- * AC-1 (chonk-home-redesign): the home page composes five sections in
- * order — Map (DropRaceLeaflet) → HeroLab (chonkiverse cup) → FlavourGrid
- * (Pick your chonk.) → ComparisonSection (no one's in our weight class)
- * → ProofBar (The receipts).
+ * AC-1 (chonk-click-cinematic-home): after the click-cinematic restructure
+ * the home page composes four sections in order — Map (DropRaceLeaflet,
+ * which owns the cinematic overlay) → FlavourGrid (Pick your chonk.) →
+ * ComparisonSection (no one's in our weight class) → ProofBar (The
+ * receipts). HeroLab is no longer on the home stack; the cinematic
+ * triggered by a Drop Race pin click is the new hero moment.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -44,7 +46,7 @@ jest.mock("leaflet", () => {
   };
 });
 
-describe("app/page.tsx — AC-1 (home composes 5 sections in order)", () => {
+describe("app/page.tsx — AC-1 (home composes 4 sections in order)", () => {
   it("renders DropRaceLeaflet (Drop Race headline copy is in the DOM)", async () => {
     const { default: HomePage } = await import("@/app/page");
     render(<HomePage />);
@@ -53,13 +55,12 @@ describe("app/page.tsx — AC-1 (home composes 5 sections in order)", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders all five sections in the expected DOM order: Map → HeroLab → FlavourGrid → ComparisonSection → ProofBar", async () => {
+  it("renders all four sections in the expected DOM order: Map → FlavourGrid → ComparisonSection → ProofBar", async () => {
     const { default: HomePage } = await import("@/app/page");
     render(<HomePage />);
 
     // Pick one stable unique anchor per section.
     const mapEl = screen.getByTestId("drop-race-map");
-    const heroLabEl = screen.getByText(/Enter the Chonkiverse\./i);
     const flavourEl = screen.getByText(/Pick your chonk\./i);
     const weightClassEl = screen.getByText(/weight class\./i);
     // ProofBar's eyebrow appears once; the section's aria-label "The receipts"
@@ -73,22 +74,39 @@ describe("app/page.tsx — AC-1 (home composes 5 sections in order)", () => {
       ) !== 0;
     }
 
-    expect(follows(mapEl, heroLabEl)).toBe(true);
-    expect(follows(heroLabEl, flavourEl)).toBe(true);
+    expect(follows(mapEl, flavourEl)).toBe(true);
     expect(follows(flavourEl, weightClassEl)).toBe(true);
     expect(follows(weightClassEl, receiptsEl)).toBe(true);
   });
 
-  it("imports the four restored brand-section components (HeroLab / FlavourGrid / ComparisonSection / ProofBar)", () => {
+  it("imports the three restored brand-section components (FlavourGrid / ComparisonSection / ProofBar)", () => {
     const src = fs.readFileSync(
       path.join(process.cwd(), "app/page.tsx"),
       "utf8",
     );
     // Each must appear as an import. Tolerant of named vs default form.
-    expect(src).toMatch(/import[^;]*\bHeroLab\b/);
     expect(src).toMatch(/import[^;]*\bFlavourGrid\b/);
     expect(src).toMatch(/import[^;]*\bComparisonSection\b/);
     expect(src).toMatch(/import[^;]*\bProofBar\b/);
+  });
+
+  it("does NOT import HeroLab on the home page (HeroLab now lives at /lab only)", () => {
+    const src = fs.readFileSync(
+      path.join(process.cwd(), "app/page.tsx"),
+      "utf8",
+    );
+    // After the click-cinematic restructure HeroLab is off the home stack.
+    // The lab route (app/lab/page.tsx) still owns it as a sketchpad.
+    expect(src).not.toMatch(/import[^;]*\bHeroLab\b/);
+    expect(src).not.toMatch(/<HeroLab\b/);
+  });
+
+  it("FlavourGrid section carries id='flavour-grid' so the cinematic finish can scroll to it", () => {
+    const src = fs.readFileSync(
+      path.join(process.cwd(), "components/sections/FlavourGrid.tsx"),
+      "utf8",
+    );
+    expect(src).toMatch(/id="flavour-grid"/);
   });
 
   it("does NOT import any of the still-archived section components (IngredientScience / FounderStory / FindUsTeaser / CTABlock)", () => {

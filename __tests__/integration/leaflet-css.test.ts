@@ -123,13 +123,10 @@ describe("AC-3 — Cup marker styling (replaces pre-sprint .chonk-pin styles)", 
     expect(css).toMatch(reducedMotion);
   });
 
-  it("contains styling for the wordmark fallback (.cup-fallback) so the marker isn't invisible", () => {
+  it("contains styling for the live 3D cup iframe (.cup-iframe)", () => {
+    // Marker shape was simplified to iframe-only — no pink wordmark
+    // fallback, no vote-count badge. The cup iframe is the entire pin.
     const css = read("app/globals.css");
-    expect(css).toMatch(/\.cup-fallback\b/);
-  });
-
-  it("contains styling for the vote-count badge (.cup-votes)", () => {
-    const css = read("app/globals.css");
-    expect(css).toMatch(/\.cup-votes\b/);
+    expect(css).toMatch(/\.cup-iframe\b/);
   });
 });

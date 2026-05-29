@@ -98,7 +98,10 @@ export default function DropRaceVoteModal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        // z-index 2000 keeps the form above the cinematic iframe (z 1500)
+        // when it composites in at the end of the dive sequence.
+        zIndex: 2000,
+        animation: "chonk-modal-fade-in 240ms ease-out both",
       }}
       onClick={(e) => {
         // Backdrop click closes
