@@ -114,16 +114,14 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   const lerp  = (a, b, t) => a + (b - a) * t;
   const smoothstep01 = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
 
-  // Lab variant: the parent React page owns the tall scroll section and
-  // computes our 0..1 progress through it, pushed via postMessage on every
-  // rAF tick. We keep a fallback to the parent-window scroll shim so the
-  // file is still viewable standalone at /chonk-hero-lab.html.
-  let externalProgress = null;
+  // Cinematic variant: NEVER track host-page scroll. The iframe is
+  // pre-loaded off-screen and would otherwise read window.parent.scrollY
+  // — which advances the camera deep into the K-rig before the user
+  // has even clicked. We pin externalProgress at 0 (idle = K.p0) and
+  // let the chonk-cinematic-play clock be the only source of progress.
+  let externalProgress = 0;
   let externalPseudoY = 0;
-  let scrollHost = window;
-  try {
-    if (window.parent && window.parent !== window) scrollHost = window.parent;
-  } catch (_) { /* cross-origin → keep own window */ }
+  const scrollHost = window;
   // Cinematic message protocol — internal-clock driven.
   // Receives chonk-cinematic-play / -skip / -reset from the parent;
   // emits chonk-cinematic-progress at ~20Hz and chonk-cinematic-done
