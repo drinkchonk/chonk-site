@@ -200,32 +200,6 @@
   html[data-mode="marker"] .ui,
   html[data-mode="marker"] .vignette { display: none !important; }
   html[data-mode="marker"] body { min-height: 100vh !important; overflow: hidden; }
-
-  /* Cinematic mode overlays — opacity driven per-frame from JS during the
-     click-to-fullscreen sequence. Two stacked layers: a blueprint-blue grid
-     tint that rises and falls through the middle of the timeline, and a
-     plain black layer that rises in the final 18% so the end of the
-     cinematic dissolves cleanly into whatever the host page paints next. */
-  #cinematicBlueprint,
-  #cinematicBlack {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 60ms linear;
-    will-change: opacity;
-  }
-  #cinematicBlueprint {
-    background:
-      repeating-linear-gradient(0deg,  rgba(190,220,255,0.16) 0px, transparent 1px, transparent 28px),
-      repeating-linear-gradient(90deg, rgba(190,220,255,0.16) 0px, transparent 1px, transparent 28px),
-      linear-gradient(180deg, rgba(14,32,68,0.62) 0%, rgba(6,14,30,0.78) 100%);
-    z-index: 10;
-  }
-  #cinematicBlack {
-    background: #000;
-    z-index: 11;
-  }
 </style>
 <script>
   // Runs before <body> parses so marker-mode CSS applies on first paint,
@@ -243,11 +217,6 @@
 <div id="loader" aria-hidden="true" class="hidden"><div class="mark">chonk!</div></div>
 
 <canvas id="scene" aria-label="Rotating 3D Chonk Shakes cup" width="2080" height="1466" style="width: 1040px; height: 733px;"></canvas>
-
-<!-- Cinematic-mode overlays. Hidden by default (opacity:0); the host page
-     triggers them via postMessage {type:'chonk-cinematic-play'}. -->
-<div id="cinematicBlueprint" aria-hidden="true"></div>
-<div id="cinematicBlack" aria-hidden="true"></div>
 
 <div class="ui bottom-center hidden" id="scrollHint">Scroll ↓</div>
 <div class="ui bottom-right" id="holdSip">hold. sip. repeat.</div>
@@ -991,114 +960,6 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   }
   window.addEventListener('resize', onResize);
 
-  /* ---------- Cinematic mode (click-to-fullscreen "dive into the cup") ----
-   * Triggered by postMessage {type:'chonk-cinematic-play', durationMs:3500}
-   * from the host page. Runs an internal rAF-tied timeline that:
-   *   - dollies the camera forward into the cup (z 9.5 → 0.6) with a
-   *     slight y lift, reading as "flying toward the cup."
-   *   - fades a blueprint-blue grid overlay in then out across the middle
-   *     of the timeline (peak ~t=0.45).
-   *   - fades to black in the final 18% so the host page can dissolve the
-   *     iframe cleanly into whatever comes next.
-   * Emits chonk-cinematic-progress {t:0..1} (throttled ~20Hz) per tick
-   * and chonk-cinematic-done at completion. Honours chonk-cinematic-skip
-   * (jump to end) and chonk-cinematic-reset (restore idle state).
-   * Orthogonal to marker mode — a 40×40 marker iframe can grow to
-   * fullscreen and play the cinematic without losing its per-marker spin.
-   */
-  const cinematicBlueprintEl = document.getElementById('cinematicBlueprint');
-  const cinematicBlackEl     = document.getElementById('cinematicBlack');
-  let cinematicActive     = false;
-  let cinematicStartMs    = 0;
-  let cinematicDurMs      = 3500;
-  let cinematicProgress   = 0;
-  let cinematicLastEmitMs = 0;
-
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-  // Triangular envelope for the blueprint overlay: rises 0 → peak by
-  // t=0.45 then falls back to 0 by t=1. Amp tuned so the grid reads
-  // through without burying the cup body.
-  function cinematicBlueprintAlpha(t) {
-    const peak = 0.45;
-    const amp  = 0.55;
-    if (t < peak) return amp * easeInOutCubic(t / peak);
-    return amp * (1 - easeInOutCubic((t - peak) / (1 - peak)));
-  }
-  // Black overlay rises in the last 18%. The final frame is fully
-  // black so the React side can dissolve the iframe from under it
-  // without a visible seam.
-  function cinematicBlackAlpha(t) {
-    const start = 0.82;
-    if (t <= start) return 0;
-    return Math.min(1, (t - start) / (1 - start));
-  }
-
-  function startCinematic(durationMs) {
-    const d = Number(durationMs);
-    cinematicDurMs      = Number.isFinite(d) && d > 0 ? Math.min(15000, Math.max(300, d)) : 3500;
-    cinematicStartMs    = performance.now();
-    cinematicProgress   = 0;
-    cinematicLastEmitMs = 0;
-    cinematicActive     = true;
-  }
-
-  function skipCinematic() {
-    if (!cinematicActive) return;
-    // Backdate the start so the next animate() tick computes t >= 1.
-    cinematicStartMs = performance.now() - cinematicDurMs;
-  }
-
-  function resetCinematic() {
-    cinematicActive   = false;
-    cinematicProgress = 0;
-    if (cinematicBlueprintEl) cinematicBlueprintEl.style.opacity = '0';
-    if (cinematicBlackEl)     cinematicBlackEl.style.opacity     = '0';
-  }
-
-  window.addEventListener('message', (e) => {
-    const d = e && e.data;
-    if (!d || typeof d !== 'object') return;
-    if (d.type === 'chonk-cinematic-play')       startCinematic(d.durationMs);
-    else if (d.type === 'chonk-cinematic-skip')  skipCinematic();
-    else if (d.type === 'chonk-cinematic-reset') resetCinematic();
-  });
-
-  // Returns true while the cinematic owns the camera for this frame —
-  // animate() uses the return to skip the mouse-parallax chase.
-  function updateCinematic(nowMs) {
-    if (!cinematicActive) return false;
-    const rawT = (nowMs - cinematicStartMs) / cinematicDurMs;
-    cinematicProgress = clamp(rawT, 0, 1);
-    const eased = easeInOutCubic(cinematicProgress);
-
-    // Camera curve: dolly from (0, 0.15, 9.5) → (0, 1.1, 0.6).
-    state.camTargetX = 0;
-    state.camTargetY = lerp(0.15, 1.1, eased);
-    state.camTargetZ = lerp(9.5,  0.6, eased);
-    // Hard-set position — bypass the 0.05-alpha chase lerp so the
-    // authored curve is exactly what plays. lookAt(0,0,0) still runs
-    // below at the existing site, so the cup stays framed.
-    camera.position.set(state.camTargetX, state.camTargetY, state.camTargetZ);
-
-    if (cinematicBlueprintEl) cinematicBlueprintEl.style.opacity = cinematicBlueprintAlpha(cinematicProgress).toFixed(3);
-    if (cinematicBlackEl)     cinematicBlackEl.style.opacity     = cinematicBlackAlpha(cinematicProgress).toFixed(3);
-
-    // Throttled progress emit (~20Hz) so the host can sync the map
-    // fade + form fade-in without postMessage flood.
-    if (nowMs - cinematicLastEmitMs > 50) {
-      cinematicLastEmitMs = nowMs;
-      try { window.parent.postMessage({ type: 'chonk-cinematic-progress', t: cinematicProgress }, '*'); } catch (_) {}
-    }
-
-    if (cinematicProgress >= 1) {
-      cinematicActive = false;
-      try { window.parent.postMessage({ type: 'chonk-cinematic-done' }, '*'); } catch (_) {}
-    }
-    return true;
-  }
-
   /* ---------- Animation ---------- */
   // Autonomous rotation: the cup spins on its own at a constant base rate.
   // Scroll contributes a short-lived velocity boost on top — so scrolling
@@ -1129,19 +990,13 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     if (scrollBoost > MAX_BOOST) scrollBoost = MAX_BOOST;
     else if (scrollBoost < -MAX_BOOST) scrollBoost = -MAX_BOOST;
 
-    // Cinematic mode (if active) owns the camera path for this frame —
-    // see updateCinematic() above. Otherwise run the normal mouse-parallax
-    // target + chase lerp.
-    const cinematicOwnsCamera = updateCinematic(time);
-    if (!cinematicOwnsCamera) {
-      // Camera parallax — mouse only; no scroll-driven dolly now.
-      state.camTargetX = (state.mouseX / window.innerWidth  - 0.5) * 0.25;
-      state.camTargetY = (state.mouseY / window.innerHeight - 0.5) * 0.18 + 0.15;
-      state.camTargetZ = 9.5;
-      camera.position.x = lerp(camera.position.x, state.camTargetX, 0.05);
-      camera.position.y = lerp(camera.position.y, state.camTargetY, 0.05);
-      camera.position.z = lerp(camera.position.z, state.camTargetZ, 0.06);
-    }
+    // Camera parallax — mouse only; no scroll-driven dolly now.
+    state.camTargetX = (state.mouseX / window.innerWidth  - 0.5) * 0.25;
+    state.camTargetY = (state.mouseY / window.innerHeight - 0.5) * 0.18 + 0.15;
+    state.camTargetZ = 9.5;
+    camera.position.x = lerp(camera.position.x, state.camTargetX, 0.05);
+    camera.position.y = lerp(camera.position.y, state.camTargetY, 0.05);
+    camera.position.z = lerp(camera.position.z, state.camTargetZ, 0.06);
     camera.lookAt(0, 0, 0);
 
     // Integrate rotation: base spin + scroll boost, scaled by frame time.

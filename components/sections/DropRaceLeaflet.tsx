@@ -708,7 +708,7 @@ export default function DropRaceLeaflet() {
           chrome and visibility transitions. */}
       <iframe
         ref={cinematicIframeRef}
-        src="/chonk-hero.html#marker&v=1.000"
+        src="/chonk-cinematic.html"
         className="chonk-cinematic-iframe"
         data-cinematic-state={cinematicState}
         data-testid="chonk-cinematic-iframe"

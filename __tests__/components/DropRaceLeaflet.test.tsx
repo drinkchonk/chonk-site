@@ -668,15 +668,16 @@ describe("<DropRaceLeaflet />", () => {
       expect(section.getAttribute("data-cinematic-state")).toBe("idle");
     });
 
-    it("cinematic iframe is mounted with src pointing at /chonk-hero.html#marker", async () => {
+    it("cinematic iframe is mounted with src pointing at /chonk-cinematic.html", async () => {
       await renderComponent();
       const iframe = screen.getByTestId(
         "chonk-cinematic-iframe",
       ) as HTMLIFrameElement;
-      // Must point at the same Three.js cup as the pin iframes — that's
-      // what gives the cinematic visual continuity with the clicked pin.
+      // Points at the dedicated cinematic file — same Three.js cup
+      // geometry as the pin iframes, plus the 5-keyframe camera rig
+      // that makes the "fly into the cup" read.
       expect(iframe.getAttribute("src")).toMatch(
-        /^\/chonk-hero\.html#marker/,
+        /^\/chonk-cinematic\.html/,
       );
       // Eager-loaded so the scene is ready before any pin click.
       expect(iframe.getAttribute("loading")).toBe("eager");
