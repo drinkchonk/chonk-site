@@ -221,24 +221,9 @@ export default function DropRaceLeaflet() {
         `.chonk-cup-marker[data-loc-id="${loc.id}"]`,
       );
       const iframe = cinematicIframeRef.current;
-      // eslint-disable-next-line no-console
-      console.log("[chonk-cinematic] startCinematic", {
-        locId: loc.id,
-        pinElFound: !!pinEl,
-        iframeFound: !!iframe,
-        allMarkersInDOM: document.querySelectorAll(".chonk-cup-marker").length,
-        allMarkersWithDataLocId: document.querySelectorAll(
-          ".chonk-cup-marker[data-loc-id]",
-        ).length,
-      });
       if (!pinEl || !iframe) {
         // DOM not ready — fall back to direct behaviour so the user is
         // never stranded.
-        // eslint-disable-next-line no-console
-        console.log(
-          "[chonk-cinematic] FALLBACK → direct behaviour (no cinematic)",
-          { voted: !!hasVotedRef.current },
-        );
         if (hasVotedRef.current) {
           scrollToFlavourGrid();
         } else {
@@ -248,13 +233,6 @@ export default function DropRaceLeaflet() {
       }
 
       const rect = pinEl.getBoundingClientRect();
-      // eslint-disable-next-line no-console
-      console.log("[chonk-cinematic] pin rect captured", {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      });
 
       // Flip cinematic state FIRST so CSS rules (map fade, UI fade, other
       // markers fade) start at the same instant as the iframe snap.
@@ -435,21 +413,8 @@ export default function DropRaceLeaflet() {
             // page-load picks up localStorage.
             const reduced = prefersReducedMotion();
             const voted = !!hasVotedRef.current;
-            // eslint-disable-next-line no-console
-            console.log("[chonk-click]", {
-              locId: loc.id,
-              reducedMotion: reduced,
-              voted,
-              hasIframeRef: !!cinematicIframeRef.current,
-              hasMapRef: !!mapInstanceRef.current,
-            });
 
             if (reduced) {
-              // eslint-disable-next-line no-console
-              console.log(
-                "[chonk-click] → reduced-motion branch:",
-                voted ? "scroll-to-flavour-grid" : "open-modal-directly",
-              );
               if (voted) {
                 scrollToFlavourGrid();
               } else {
@@ -459,8 +424,6 @@ export default function DropRaceLeaflet() {
             }
 
             // Motion-OK: cinematic plays for everyone.
-            // eslint-disable-next-line no-console
-            console.log("[chonk-click] → motion-OK branch, calling startCinematic");
             startCinematic(loc);
           });
         }
