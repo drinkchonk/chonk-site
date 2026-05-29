@@ -7,9 +7,11 @@ const cinematicPath = resolve(publicDir, "chonk-cinematic.html");
 // The cinematic is a duplicate-then-stripped derivative of chonk-hero-lab.html
 // that the React side iframes into DropRaceLeaflet for the click-to-fullscreen
 // dive sequence. jsdom has no WebGL so we can't render-test it, but we CAN
-// lock the static contract: the cinematic message protocol, the 5-keyframe
-// camera rig, the vortex spin-up formula, and the absence of orbital +
-// lab-chrome code carried in from the lab parent file.
+// lock the static contract: the cinematic message protocol, the six-stage
+// camera rig (zoom_start → zoom_end → birds_eye → over_straw → descend →
+// helix), the absence of every per-frame shake source Sam called out
+// (mouse parallax, breath pulse, idle bob, drag handlers, vortex spin),
+// and the absence of orbital + lab-chrome code carried in from the lab.
 
 describe("chonk-cinematic iframe asset", () => {
   let html: string;
@@ -46,30 +48,71 @@ describe("chonk-cinematic iframe asset", () => {
       expect(html).toMatch(/progress:\s*cinematicProgress/);
     });
 
-    it("default cinematic duration is 3500ms (matches React's CINEMATIC_DURATION_MS)", () => {
-      expect(html).toMatch(/cinematicDurMs\s*=\s*3500/);
+    it("default cinematic duration is 5000ms (matches React's CINEMATIC_DURATION_MS)", () => {
+      // 5s: zoom 1.0s, pause 0.5s, lift 1.25s, over 0.75s, descend 0.75s,
+      // helix 0.75s. The 0.5s pause is Sam's explicit ask.
+      expect(html).toMatch(/cinematicDurMs\s*=\s*5000/);
     });
   });
 
-  describe("camera rig + vortex spin-up", () => {
-    it("uses the 5-keyframe K table + resolveKeyframe helper from the lab rig", () => {
-      // K table is the lab's 5-keyframe camera arc (p0=establish,
-      // p1=birds-eye, p2=over-straw, p3=descend, p4=helix-look).
+  describe("camera rig", () => {
+    it("uses the six-stage K table with zoom + pause keyframes (locks Sam's structural rewrite)", () => {
+      // Old rig (lab): p0..p4 establish → birds_eye → over → descend → helix.
+      // New rig: zoom_start, zoom_end, birds_eye, over_straw, descend, helix.
+      // The zoom_start → zoom_end push-in is the establishing motion; the
+      // pause at zoom_end is the 0.5s hold Sam asked for.
       expect(html).toMatch(
-        /const K = \{[\s\S]*p0[\s\S]*p1[\s\S]*p2[\s\S]*p3[\s\S]*p4/,
+        /const K = \{[\s\S]*zoom_start[\s\S]*zoom_end[\s\S]*birds_eye[\s\S]*over_straw[\s\S]*descend[\s\S]*helix/,
       );
       expect(html).toMatch(/function resolveKeyframe\(/);
     });
 
-    it("vortex spin-up formula is BASE_ANGULAR_VEL * spinW * cinematicSpinBoost (locks Step 4 against regression)", () => {
-      // cinematicSpinBoost ramps 1× → 5× over the first 30% of the
-      // cinematic; spinW (lab's existing upright-lock taper) decays it
-      // back to 0 by the time the camera lines up over the straw.
-      // Magnitude is a tuning knob — locks shape, not value.
-      expect(html).toMatch(/cinematicSpinBoost\s*=\s*1\s*\+\s*\d+/);
+    it("resolveKeyframe defines the pause phase (zoom_end → zoom_end with t=0)", () => {
+      // The pause phase is the visual moment that anchors "zoom finished,
+      // now the camera moves" — without it the lift bleeds into the zoom
+      // and reads as one continuous tilt instead of two motions.
       expect(html).toMatch(
-        /BASE_ANGULAR_VEL\s*\*\s*spinW\s*\*\s*cinematicSpinBoost/,
+        /out\.a = K\.zoom_end;\s*out\.b = K\.zoom_end;\s*out\.t = 0/,
       );
+    });
+  });
+
+  describe("shake sources (every per-frame jitter Sam called out must be absent)", () => {
+    it("no vortex spin-up: the cup does not rotate during the cinematic", () => {
+      // Sam: 'cup flip happens too early and it looks like the cup is
+      // moving not the camera angle.' Killing the spin removes the
+      // ambiguity. If the formula returns, the test catches it.
+      expect(html).not.toMatch(/cinematicSpinBoost/);
+      expect(html).not.toMatch(/cinematicEarly/);
+      expect(html).not.toMatch(/cupGroup\.rotation\.y\s*\+=/);
+    });
+
+    it("no mouse parallax: cursor movement does not nudge the camera", () => {
+      // The lab's parallax is fine standalone but inside a fullscreen
+      // iframe it reads as shake. Lock that the tmpPos += mx/my coupling
+      // is gone.
+      expect(html).not.toMatch(/tmpPos\.x\s*\+=\s*mx/);
+      expect(html).not.toMatch(/tmpPos\.y\s*\+=\s*my/);
+      expect(html).not.toMatch(/const\s+mx\s*=\s*\(state\.mouseX/);
+    });
+
+    it("no drag-to-spin or pointer handlers attached to the canvas/window", () => {
+      // The cinematic is a fixed-playback iframe; ANY mousedown/touchstart
+      // listener invites the user's accidental clicks to register as drag
+      // input. Lock the handlers out.
+      expect(html).not.toMatch(/canvas\.addEventListener\(\s*['"]mousedown/);
+      expect(html).not.toMatch(/canvas\.addEventListener\(\s*['"]touchstart/);
+      expect(html).not.toMatch(/function onDragStart\(/);
+    });
+
+    it("no breath pulse or idle bob/sway: the cup holds its pose every frame", () => {
+      // Per-frame sin(time) terms create sub-pixel jitter that compounds
+      // with everything else. The cinematic plays a fixed arc; nothing
+      // organic should move.
+      expect(html).not.toMatch(/breathScale\s*=/);
+      expect(html).not.toMatch(/Math\.sin\(time\s*\*\s*0\.0011\)/);
+      expect(html).not.toMatch(/Math\.sin\(time\s*\*\s*0\.0008\)/);
+      expect(html).not.toMatch(/Math\.sin\(time\s*\*\s*0\.0007\)/);
     });
   });
 

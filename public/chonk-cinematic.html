@@ -129,7 +129,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   // the 5-keyframe camera rig reads it for free.
   let cinematicActive = false;
   let cinematicStartMs = 0;
-  let cinematicDurMs = 3500;
+  let cinematicDurMs = 5000;
   let cinematicProgress = 0;
   let cinematicLastEmitMs = 0;
   window.addEventListener('message', (e) => {
@@ -138,7 +138,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     if (d.type === 'chonk-cinematic-play') {
       cinematicActive = true;
       cinematicStartMs = performance.now();
-      cinematicDurMs = Math.max(500, Number(d.durationMs) || 3500);
+      cinematicDurMs = Math.max(500, Number(d.durationMs) || 5000);
       cinematicProgress = 0;
     } else if (d.type === 'chonk-cinematic-skip') {
       cinematicProgress = 1;
@@ -1284,101 +1284,21 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
    *   3. Bloom was marked "Phase 6 — optional polish" in the brief.
    */
 
-  /* ---------- State + interaction ---------- */
+  /* ---------- Minimal state ---------- */
+  // The cinematic is a fixed playback driven only by the cinematicProgress
+  // clock — no mouse parallax, no drag-to-spin, no idle bob. The only
+  // field the animate loop actually reads is scrollProgress (set from
+  // cinematicProgress inside the clock-tick block).
   const state = {
-    mouseX: window.innerWidth / 2,
-    mouseY: window.innerHeight / 2,
-    camTargetX: 0,
-    camTargetY: 0.15,
-    camTargetZ: 9.5,
     scrollProgress: 0,
-    cupRotY: 0,
-    cupRotX: 0,
-    cupPosY: 0,
-    // Drag-to-spin layer — persistent rotation offset added on top of
-    // the scroll-driven rotation. Carries inertia after release.
-    dragRotY: 0,
-    dragVelY: 0,
-    isDragging: false,
-    dragStartX: 0,
-    dragStartRotY: 0,
-    hasInteracted: false
   };
 
   cupGroup.scale.setScalar(CUP_SCALE);
 
-  // Minimal mouse tracking — drives the gentle parallax during the
-  // first ~30% of the cinematic (parallaxWeight ramps to 0 by p=0.30).
-  window.addEventListener('mousemove', (e) => {
-    state.mouseX = e.clientX;
-    state.mouseY = e.clientY;
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    if (!e.touches[0]) return;
-    state.mouseX = e.touches[0].clientX;
-    state.mouseY = e.touches[0].clientY;
-  }, { passive: true });
-
-  /* ---------- Drag-to-spin ----------
-   * Press (mouse or touch) anywhere over the canvas and drag horizontally
-   * to spin the cup around its vertical axis. Release and it carries a
-   * little inertia before settling. Works on top of scroll rotation.
-   */
-  const DRAG_SENSITIVITY = 0.01;   // radians per px dragged
-  const DRAG_FRICTION    = 0.93;   // inertia decay per frame
-  const DRAG_FLING_GAIN  = 0.35;   // how much release velocity becomes spin
-
-  let lastDragX = 0;
-  let lastDragT = 0;
-  let dragInstVel = 0;
-
-  function onDragStart(clientX) {
-    state.isDragging = true;
-    state.dragStartX = clientX;
-    state.dragStartRotY = state.dragRotY;
-    state.dragVelY = 0;
-    lastDragX = clientX;
-    lastDragT = performance.now();
-    dragInstVel = 0;
-    state.hasInteracted = true;
-    document.body.classList.add('dragging');
-  }
-  function onDragMove(clientX) {
-    if (!state.isDragging) return;
-    const now = performance.now();
-    const dt = Math.max(1, now - lastDragT);
-    const dx = clientX - lastDragX;
-    dragInstVel = (dx / dt) * 16.6; // normalise to ~60fps frame-px
-    lastDragX = clientX;
-    lastDragT = now;
-    state.dragRotY = state.dragStartRotY + (clientX - state.dragStartX) * DRAG_SENSITIVITY;
-  }
-  function onDragEnd() {
-    if (!state.isDragging) return;
-    state.isDragging = false;
-    state.dragVelY = dragInstVel * DRAG_SENSITIVITY * DRAG_FLING_GAIN * 60;
-    document.body.classList.remove('dragging');
-  }
-
-  canvas.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    onDragStart(e.clientX);
-  });
-  window.addEventListener('mousemove', (e) => onDragMove(e.clientX), { passive: true });
-  window.addEventListener('mouseup', onDragEnd);
-  window.addEventListener('mouseleave', onDragEnd);
-
-  canvas.addEventListener('touchstart', (e) => {
-    if (!e.touches[0]) return;
-    onDragStart(e.touches[0].clientX);
-  }, { passive: true });
-  window.addEventListener('touchmove', (e) => {
-    if (!e.touches[0]) return;
-    onDragMove(e.touches[0].clientX);
-  }, { passive: true });
-  window.addEventListener('touchend', onDragEnd);
-  window.addEventListener('touchcancel', onDragEnd);
+  // Input handlers (mouse parallax, drag-to-spin, touch) intentionally
+  // omitted — the cinematic is a fixed playback driven only by the
+  // chonk-cinematic-play clock; any pointer interaction would just
+  // shake the camera mid-arc.
 
   /* ---------- Resize ---------- */
   function onResize() {
@@ -1419,12 +1339,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   // the intro completes. reducedMotion skips it entirely.
   // Starting animations removed — scene is live immediately.
 
-  let firstFrameRendered = false;
   let lastFrameTime = 0;
-  const BASE_ANGULAR_VEL = -0.0006;
-
-  const camTargetPos = new THREE.Vector3(0, 0.15, 9.5);
-  const camTargetLook = new THREE.Vector3(0, 0, 0);
   const camCurrentLook = new THREE.Vector3(0, 0, 0);
   let camTargetFov = 32;
   const BASE_FOV  = 36;
@@ -1446,25 +1361,34 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
   // Stage 1 (bird's-eye): camera way overhead, looking straight down. A
   // tiny Z offset in the look target avoids the degenerate lookAt case
   // of "up axis parallel to view direction."
+  // Six-stage cinematic arc, total 5.0s at default duration:
+  //   zoom_start → zoom_end : push in (0.0–1.0s)
+  //   pause                  : hold the close-up (1.0–1.5s) — 0.5s beat
+  //   zoom_end → birds_eye   : lift up and over (1.5–2.75s)
+  //   birds_eye → over_straw : slide to above the straw mouth (2.75–3.5s)
+  //   over_straw → descend   : drop into the straw (3.5–4.25s)
+  //   descend → helix        : pitch forward into darkness (4.25–5.0s)
   const K = {
-    p0: { pos: new THREE.Vector3(0,             0.70, IDLE_CAM_Z), look: new THREE.Vector3(0,            -0.40,         0),             fov: BASE_FOV  },
-    p1: { pos: new THREE.Vector3(0,            14.0,  0.1),  look: new THREE.Vector3(0,            -0.35,         0.05),          fov: WIDE_FOV  },
-    p2: { pos: new THREE.Vector3(STRAW_TOP_X,   5.2,  STRAW_TOP_Z), look: new THREE.Vector3(STRAW_TOP_X, STRAW_TOP_Y, STRAW_TOP_Z), fov: 28        },
-    p3: { pos: new THREE.Vector3(STRAW_TOP_X,   0.6,  STRAW_TOP_Z), look: new THREE.Vector3(STRAW_TOP_X, -2.0,       STRAW_TOP_Z), fov: TIGHT_FOV },
-    p4: { pos: new THREE.Vector3(STRAW_TOP_X,  -1.5, -1.5),          look: new THREE.Vector3(STRAW_TOP_X, -1.5,      -4.5),          fov: TIGHT_FOV }
+    zoom_start: { pos: new THREE.Vector3(0,             0.70, IDLE_CAM_Z),         look: new THREE.Vector3(0,            -0.40,         0),             fov: BASE_FOV  },
+    zoom_end:   { pos: new THREE.Vector3(0,             0.70, IDLE_CAM_Z * 0.55),  look: new THREE.Vector3(0,            -0.40,         0),             fov: BASE_FOV  },
+    birds_eye:  { pos: new THREE.Vector3(0,            14.0,  0.1),                look: new THREE.Vector3(0,            -0.35,         0.05),          fov: WIDE_FOV  },
+    over_straw: { pos: new THREE.Vector3(STRAW_TOP_X,   5.2,  STRAW_TOP_Z),        look: new THREE.Vector3(STRAW_TOP_X, STRAW_TOP_Y,  STRAW_TOP_Z),    fov: 28        },
+    descend:    { pos: new THREE.Vector3(STRAW_TOP_X,   0.6,  STRAW_TOP_Z),        look: new THREE.Vector3(STRAW_TOP_X, -2.0,         STRAW_TOP_Z),    fov: TIGHT_FOV },
+    helix:      { pos: new THREE.Vector3(STRAW_TOP_X,  -1.5, -1.5),                look: new THREE.Vector3(STRAW_TOP_X, -1.5,         -4.5),            fov: TIGHT_FOV }
   };
 
   const tmpPos = new THREE.Vector3();
   const tmpLook = new THREE.Vector3();
   function resolveKeyframe(p, out) {
-    if (p <= 0.15)        { out.a = K.p0; out.b = K.p0; out.t = 0;                                         out.inStage = 0; }
-    else if (p <= 0.38)   { out.a = K.p0; out.b = K.p1; out.t = smoothstep01((p - 0.15) / (0.38 - 0.15));  out.inStage = 1; }
-    else if (p <= 0.58)   { out.a = K.p1; out.b = K.p2; out.t = smoothstep01((p - 0.38) / (0.58 - 0.38));  out.inStage = 2; }
-    else if (p <= 0.78)   { out.a = K.p2; out.b = K.p3; out.t = smoothstep01((p - 0.58) / (0.78 - 0.58));  out.inStage = 3; }
-    else                  { out.a = K.p3; out.b = K.p4; out.t = smoothstep01((p - 0.78) / (1.00 - 0.78));  out.inStage = 4; }
+    if      (p <= 0.20) { out.a = K.zoom_start; out.b = K.zoom_end;  out.t = smoothstep01(p / 0.20);                  out.inStage = 0; }
+    else if (p <= 0.30) { out.a = K.zoom_end;   out.b = K.zoom_end;  out.t = 0;                                       out.inStage = 1; }
+    else if (p <= 0.55) { out.a = K.zoom_end;   out.b = K.birds_eye; out.t = smoothstep01((p - 0.30) / 0.25);         out.inStage = 2; }
+    else if (p <= 0.70) { out.a = K.birds_eye;  out.b = K.over_straw;out.t = smoothstep01((p - 0.55) / 0.15);         out.inStage = 3; }
+    else if (p <= 0.85) { out.a = K.over_straw; out.b = K.descend;   out.t = smoothstep01((p - 0.70) / 0.15);         out.inStage = 4; }
+    else                { out.a = K.descend;    out.b = K.helix;     out.t = smoothstep01((p - 0.85) / 0.15);         out.inStage = 5; }
     return out;
   }
-  const kf = { a: K.p0, b: K.p0, t: 0, inStage: 0 };
+  const kf = { a: K.zoom_start, b: K.zoom_start, t: 0, inStage: 0 };
 
   function animate() {
     const time = performance.now();
@@ -1512,16 +1436,13 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     tmpLook.copy(kf.a.look).lerp(kf.b.look, kf.t);
     const targetFov = lerp(kf.a.fov, kf.b.fov, kf.t);
 
-    // Mouse parallax only in stage 0 (gentle), fully off by stage 2.
-    const parallaxWeight = 1 - smoothstep01((p - 0.05) / 0.25);
-    const mx = (state.mouseX / window.innerWidth  - 0.5) * 0.18 * parallaxWeight;
-    const my = (state.mouseY / window.innerHeight - 0.5) * 0.14 * parallaxWeight;
-    tmpPos.x += mx;
-    tmpPos.y += my;
+    // Mouse parallax intentionally removed in the cinematic — the
+    // click flow plays a fixed 5s arc and any cursor-driven camera
+    // jitter reads as shake during the establishing zoom.
 
     if (reducedMotion) {
-      camera.position.copy(K.p0.pos);
-      camCurrentLook.copy(K.p0.look);
+      camera.position.copy(K.zoom_start.pos);
+      camCurrentLook.copy(K.zoom_start.look);
       camera.lookAt(camCurrentLook);
       if (Math.abs(camera.fov - BASE_FOV) > 0.001) {
         camera.fov = BASE_FOV;
@@ -1538,24 +1459,21 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     }
 
     // --- Stage-driven scene weights ---
-    // Studio fade: cup + studio lights lit through descent start (0.60),
-    // off by the time the camera has dropped into the straw (0.76).
-    const studioW = 1 - smoothstep01((p - 0.60) / (0.76 - 0.60));
+    // Phase boundaries (5.0s @ default duration):
+    //   0.00–0.20  zoom        (1.0s)
+    //   0.20–0.30  pause       (0.5s)
+    //   0.30–0.55  lift        (1.25s)
+    //   0.55–0.70  over_straw  (0.75s)
+    //   0.70–0.85  descend     (0.75s)
+    //   0.85–1.00  helix       (0.75s)
+    // Studio fade: cup + studio lights lit through descent, off by helix start.
+    const studioW = 1 - smoothstep01((p - 0.75) / (0.88 - 0.75));
     // Interior pink light: fades in as we descend, peaks with the helix.
-    const interiorW = smoothstep01((p - 0.66) / (0.92 - 0.66));
-    // Helix alpha: starts revealing as camera pitches forward, full by 0.96.
-    const helixW = 0;  // amino helix reveal removed — scroll ends in pure black
-    // Spin weight: tapers across the bird's-eye lift so the cup is nearly
-    // still by the time we line up over the straw.
-    const spinW  = 1 - smoothstep01((p - 0.20) / (0.50 - 0.20));
-    // Rotation lock: ease cup.rotation.y toward 0 so the straw reaches its
-    // reference world position by the time the camera is above it.
-    const lockW  = smoothstep01((p - 0.28) / (0.52 - 0.28));
-    // Tunnel fade: dark inner tube + end cap are solid during descent but
-    // fade out at the start of stage 4 so they don't silhouette against
-    // the helix reveal or linger as a dark disc once the camera pitches
-    // forward into the darkness.
-    const tunnelW = 1 - smoothstep01((p - 0.78) / (0.86 - 0.78));
+    const interiorW = smoothstep01((p - 0.78) / (0.95 - 0.78));
+    // Helix alpha: amino helix reveal removed — scroll ends in pure black.
+    const helixW = 0;
+    // Tunnel fade: solid during descent, fades out at start of helix.
+    const tunnelW = 1 - smoothstep01((p - 0.85) / (0.92 - 0.85));
 
     keyLight.intensity    = KEY_BASE    * studioW;
     fillLight.intensity   = FILL_BASE   * studioW;
@@ -1573,7 +1491,11 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     // user scrolls into the rise stage).
     // Blueprint transition is scroll-driven only; intro keeps the cup
     // fully rendered while it rises into place.
-    const blueprintBlend = inIntro ? 0 : smoothstep01((p - 0.08) / (0.22 - 0.08));
+    // Cup body → wireframe blueprint cross-fade during the lift phase
+    // (0.30–0.55). Stays fully rendered during zoom + pause so Sam reads
+    // the textured product first, then dissolves to blueprint as the
+    // camera lifts over.
+    const blueprintBlend = inIntro ? 0 : smoothstep01((p - 0.30) / (0.50 - 0.30));
     const introRevealW = 1;
 
     const cupBodyAlpha = studioW * (1 - blueprintBlend);
@@ -1681,43 +1603,22 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     }
 
     // --- Cup transform ---
-    // Upright-lerp: cup carries its branded forward/left tilts + idle
-    // bob/sway during the establishing shot, then gradually straightens
-    // to a perfect upright as the camera rises. By the time we're at
-    // bird's-eye (p ≥ 0.40) the straw axis is precisely vertical, which
-    // is what makes STRAW_TOP_X/Y/Z a reliable camera target for the
-    // straight-down descent and keeps the dark inner tube aligned with
-    // the outer white straw.
-    // Vortex spin-up: cinematicSpinBoost ramps 1× → 5× over the first
-    // 30% of the cinematic (p=0..0.30) via smoothstep, then spinW
-    // naturally decays it to 0 across p=0.20..0.50 so the cup is still
-    // by the time the camera lines up over the straw. Without an
-    // active cinematic, cinematicSpinBoost is 1× — base idle spin.
-    const cinematicEarly = Math.min(1, cinematicActive ? (cinematicProgress / 0.30) : 0);
-    const cinematicSpinBoost = 1 + 4 * smoothstep01(cinematicEarly);
-    const angularVel = BASE_ANGULAR_VEL * spinW * cinematicSpinBoost;
-    cupGroup.rotation.y += angularVel * dtMs;
-    if (lockW > 0.001) {
-      const diff = -cupGroup.rotation.y;
-      const wrapped = Math.atan2(Math.sin(diff), Math.cos(diff));
-      cupGroup.rotation.y += wrapped * lockW * 0.08;
-    }
-
-    // Delayed to start well after the user first begins scrolling, so
-    // the shake stays EXACTLY in its idle pose during the opening scroll.
-    const uprightW = smoothstep01((p - 0.30) / (0.50 - 0.30));
+    // The cinematic deliberately freezes every cup motion that isn't
+    // the camera-driven blueprint cross-fade:
+    //   - no rotation (no spin, no upright-lerp wobble)
+    //   - no breath-scale pulse
+    //   - no idle bob / sway
+    // The cup carries its branded forward-tilt pose during zoom + pause,
+    // then straightens to upright across the lift so the straw aligns
+    // with the over-straw and descent keyframes. Any per-frame jitter
+    // makes the camera arc read as "the cup is moving" — exactly what
+    // Sam called out — so we strip every non-essential transform here.
+    const uprightW = smoothstep01((p - 0.30) / (0.55 - 0.30));
     const idleW = 1 - uprightW;
-    const bob  = reducedMotion ? 0 : Math.sin(time * 0.0011) * 0.025;
-    const sway = reducedMotion ? 0 : Math.sin(time * 0.0008) * 0.012;
-
-    // Force-field breathing: subtle continuous scale pulse on the shake.
-    // Attenuated during intro rise and tunnel fade so it's only alive
-    // in the rendered-orbit window.
-    const breathScale = 1 + Math.sin(time * 0.0007) * 0.010 * (inIntro ? 0.2 : studioW);
-    cupGroup.scale.setScalar(CUP_SCALE * breathScale);
+    cupGroup.scale.setScalar(CUP_SCALE);
     cupGroup.rotation.x = CUP_BASE_TILT_X * idleW;
-    cupGroup.rotation.z = (CUP_BASE_TILT_Z + sway) * idleW;
-    cupGroup.position.y = (bob * idleW) - 0.35;
+    cupGroup.rotation.z = CUP_BASE_TILT_Z * idleW;
+    cupGroup.position.y = -0.35;
 
     // --- Helix slow spin once fully revealed ---
     if (helixVisible && p > 0.88) {
@@ -1743,10 +1644,6 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     }
 
     renderer.render(scene, camera);
-
-    if (!firstFrameRendered) {
-      firstFrameRendered = true;
-    }
 
     requestAnimationFrame(animate);
   }

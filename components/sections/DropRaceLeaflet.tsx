@@ -31,7 +31,7 @@ type LocalLocation = DropRaceLocation;
  */
 type CinematicState = "idle" | "playing" | "voting" | "done";
 
-const CINEMATIC_DURATION_MS = 3500;
+const CINEMATIC_DURATION_MS = 5000;
 const CINEMATIC_TIMEOUT_MS = 5500; // safety: don't strand the user if the iframe never emits done
 
 function aggregateSuburbVotes(locations: LocalLocation[]) {
