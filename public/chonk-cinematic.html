@@ -1423,12 +1423,7 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
 
   let firstFrameRendered = false;
   let lastFrameTime = 0;
-  let lastScrollY = getScrollY();
-  let scrollBoost = 0;
   const BASE_ANGULAR_VEL = -0.0006;
-  const SCROLL_BOOST_GAIN = -0.00012;
-  const SCROLL_BOOST_DECAY = 0.90;
-  const MAX_BOOST = 0.012;
 
   const camTargetPos = new THREE.Vector3(0, 0.15, 9.5);
   const camTargetLook = new THREE.Vector3(0, 0, 0);
@@ -1513,11 +1508,6 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     // finishes playing.
     const p = inIntro ? 0 : state.scrollProgress;
 
-    const scrollDelta = scrollY - lastScrollY;
-    lastScrollY = scrollY;
-    scrollBoost = scrollBoost * SCROLL_BOOST_DECAY + scrollDelta * SCROLL_BOOST_GAIN;
-    scrollBoost = clamp(scrollBoost, -MAX_BOOST, MAX_BOOST);
-
     // --- Camera rig ---
     resolveKeyframe(p, kf);
     tmpPos.copy(kf.a.pos).lerp(kf.b.pos, kf.t);
@@ -1560,7 +1550,6 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     // Spin weight: tapers across the bird's-eye lift so the cup is nearly
     // still by the time we line up over the straw.
     const spinW  = 1 - smoothstep01((p - 0.20) / (0.50 - 0.20));
-    const boostW = 1 - smoothstep01((p - 0.20) / (0.42 - 0.20));
     // Rotation lock: ease cup.rotation.y toward 0 so the straw reaches its
     // reference world position by the time the camera is above it.
     const lockW  = smoothstep01((p - 0.28) / (0.52 - 0.28));
@@ -1768,7 +1757,14 @@ import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUnifo
     // is what makes STRAW_TOP_X/Y/Z a reliable camera target for the
     // straight-down descent and keeps the dark inner tube aligned with
     // the outer white straw.
-    const angularVel = (BASE_ANGULAR_VEL + scrollBoost * boostW) * spinW;
+    // Vortex spin-up: cinematicSpinBoost ramps 1× → 5× over the first
+    // 30% of the cinematic (p=0..0.30) via smoothstep, then spinW
+    // naturally decays it to 0 across p=0.20..0.50 so the cup is still
+    // by the time the camera lines up over the straw. Without an
+    // active cinematic, cinematicSpinBoost is 1× — base idle spin.
+    const cinematicEarly = Math.min(1, cinematicActive ? (cinematicProgress / 0.30) : 0);
+    const cinematicSpinBoost = 1 + 4 * smoothstep01(cinematicEarly);
+    const angularVel = BASE_ANGULAR_VEL * spinW * cinematicSpinBoost;
     cupGroup.rotation.y += angularVel * dtMs;
     if (lockW > 0.001) {
       const diff = -cupGroup.rotation.y;
