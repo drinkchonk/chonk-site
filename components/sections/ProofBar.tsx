@@ -3,7 +3,7 @@ const stats = [
     big: "50",
     unit: "g",
     label: "Protein",
-    sub: "whey-forward, per chonk — Raw, Choc Chonk, Chonky Monkey.",
+    sub: "whey-forward, per chonk — Choc Chonk, Chonky Monkey, Lite.",
   },
   {
     big: "9",

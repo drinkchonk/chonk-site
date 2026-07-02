@@ -10,11 +10,10 @@ export const metadata: Metadata = {
     "Vote for your gym or suburb. Most votes wins the first Chonk drop.",
 };
 
-// Home is now a click-cinematic flow: DropRaceLeaflet owns the map +
-// pin-click → fullscreen cinematic overlay (rendered fixed) → vote modal,
-// then dissolves to scroll into FlavourGrid. HeroLab moved off the home
-// stack (still lives at /lab as a sketchpad route). The cinematic is the
-// hero now.
+// Home leads with the Drop Race map: DropRaceLeaflet owns the map, and a
+// pin click opens the vote modal (fresh voter) or scrolls to FlavourGrid
+// (returning voter) — no cinematic. HeroLab moved off the home stack
+// (still lives at /lab as a sketchpad route).
 export default function HomePage() {
   return (
     <>

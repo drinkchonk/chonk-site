@@ -1,9 +1,9 @@
 import { products, featuredProducts } from "@/lib/data/products";
 
 describe("products data", () => {
-  it("contains all four flavours", () => {
+  it("contains all three flavours", () => {
     const ids = products.map((p) => p.id).sort();
-    expect(ids).toEqual(["choc-chonk", "chonkey-monkey", "lite", "raw"]);
+    expect(ids).toEqual(["choc-chonk", "chonkey-monkey", "lite"]);
   });
 
   it("every featured product has a 50g two-scoop build", () => {
@@ -24,15 +24,9 @@ describe("products data", () => {
     });
   });
 
-  it("Raw is the cheapest build and is not a flavour-add variant", () => {
-    const raw = products.find((p) => p.id === "raw")!;
-    expect(raw.scoops[1].price).toBe(4.5);
-    expect(raw.scoops[2].price).toBe(7);
-  });
-
-  it("Lite is not featured (coconut-water slushy variant)", () => {
+  it("Lite is featured (promoted to the homepage lineup when Raw was retired)", () => {
     const lite = products.find((p) => p.id === "lite")!;
-    expect(lite.featured).toBe(false);
+    expect(lite.featured).toBe(true);
   });
 
   it("every product carries non-empty ingredients and flavour notes", () => {

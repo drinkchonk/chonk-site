@@ -23,8 +23,7 @@ export type Product = {
 /**
  * The classics as of pre-launch. Every chonk comes in 1 scoop (25g whey) or
  * 2 scoops (50g whey) — the hero number on this site is the 2-scoop build.
- * Honey is a natural sweetener in Choc Chonk and Chonkey Monkey. Raw is the
- * stripped-back speed-build: whey and whole milk, that's it.
+ * Honey is a natural sweetener in Choc Chonk and Chonkey Monkey.
  *
  * Macros are from the formulation spec. protein figures here count whey
  * isolate specifically (the marketable claim). Total dietary protein runs
@@ -79,22 +78,6 @@ export const products: Product[] = [
     },
   },
   {
-    id: "raw",
-    name: "Raw",
-    tagline: "Milk + whey. That’s it.",
-    desc:
-      "The purest expression of a chonk. Whey isolate, whole milk, done. No fruit, no frills. Built for the gym-bag crowd who want the protein and want it now — speed build, full stop.",
-    ingredients: ["Whey Isolate (Vanilla + Raw)", "Whole Milk"],
-    flavourNotes: ["Vanilla", "Milk"],
-    bgColor: "#C8E8C0",
-    textColor: "#1A1614",
-    featured: true,
-    scoops: {
-      1: { price: 4.5, proteinG: 25, calories: 250, carbs: 12, fat: 8 },
-      2: { price: 7, proteinG: 50, calories: 370, carbs: 15, fat: 9 },
-    },
-  },
-  {
     id: "lite",
     name: "Lite",
     tagline: "Protein slushy, beach mode.",
@@ -110,7 +93,7 @@ export const products: Product[] = [
     flavourNotes: ["Berry", "Coconut", "Banana"],
     bgColor: "#F2B8CC",
     textColor: "#1A1614",
-    featured: false,
+    featured: true,
     scoops: {
       1: { price: 8.5, proteinG: 25, calories: 307, carbs: 40, fat: 5 },
       2: { price: 11, proteinG: 50, calories: 427, carbs: 43, fat: 6 },

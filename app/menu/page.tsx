@@ -4,7 +4,7 @@ import MenuClient from "./MenuClient";
 export const metadata: Metadata = {
   title: "Menu",
   description:
-    "Four chonks, one standard. Up to 50g of whey-forward protein per serve. Real fruit, no added sugar, zero fillers.",
+    "Three chonks, one standard. Up to 50g of whey-forward protein per serve. Real fruit, no added sugar, zero fillers.",
 };
 
 export default function MenuPage() {

@@ -98,8 +98,7 @@ export default function DropRaceVoteModal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        // z-index 2000 keeps the form above the cinematic iframe (z 1500)
-        // when it composites in at the end of the dive sequence.
+        // z-index 2000 keeps the form above the map + its chrome panels.
         zIndex: 2000,
         animation: "chonk-modal-fade-in 240ms ease-out both",
       }}

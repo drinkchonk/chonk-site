@@ -51,12 +51,7 @@ function revealDelayForId(id: string): number {
 export function cupMarkerHtml(loc: DropRaceLocation): string {
   const v = speedMultiplierForId(loc.id).toFixed(3);
   const d = revealDelayForId(loc.id);
-  // data-loc-id lets the cinematic overlay locate the clicked pin's DOM
-  // element at click time (to capture its viewport rect) and target it
-  // for the cross-fade out. data-spin echoes the v= multiplier so the
-  // cinematic iframe can sync its spin rate to match the clicked pin
-  // before the cross-fade — minimises the visual seam.
-  return `<div class="chonk-cup-marker" data-loc-id="${loc.id}" data-spin="${v}" style="animation-delay:${d}ms">\
+  return `<div class="chonk-cup-marker" style="animation-delay:${d}ms">\
 <iframe class="cup-iframe" src="/chonk-hero.html#marker&v=${v}" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true" title=""></iframe>\
 </div>`;
 }

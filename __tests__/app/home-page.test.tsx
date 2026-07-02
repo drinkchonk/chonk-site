@@ -1,12 +1,11 @@
 /**
  * @jest-environment jsdom
  *
- * AC-1 (chonk-click-cinematic-home): after the click-cinematic restructure
- * the home page composes four sections in order — Map (DropRaceLeaflet,
- * which owns the cinematic overlay) → FlavourGrid (Pick your chonk.) →
+ * AC-1 (home section order): the home page composes four sections in
+ * order — Map (DropRaceLeaflet) → FlavourGrid (Pick your chonk.) →
  * ComparisonSection (no one's in our weight class) → ProofBar (The
- * receipts). HeroLab is no longer on the home stack; the cinematic
- * triggered by a Drop Race pin click is the new hero moment.
+ * receipts). HeroLab is no longer on the home stack; the Drop Race map
+ * is the hero moment.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -101,7 +100,7 @@ describe("app/page.tsx — AC-1 (home composes 4 sections in order)", () => {
     expect(src).not.toMatch(/<HeroLab\b/);
   });
 
-  it("FlavourGrid section carries id='flavour-grid' so the cinematic finish can scroll to it", () => {
+  it("FlavourGrid section carries id='flavour-grid' so the post-vote scroll can reach it", () => {
     const src = fs.readFileSync(
       path.join(process.cwd(), "components/sections/FlavourGrid.tsx"),
       "utf8",

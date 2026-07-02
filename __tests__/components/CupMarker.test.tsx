@@ -59,25 +59,6 @@ describe("cupMarkerHtml — live 3D cup-marker component", () => {
     expect(html).toContain("chonk-cup-marker");
   });
 
-  it("carries data-loc-id so the cinematic overlay can find the clicked pin's DOM rect", () => {
-    // The click-cinematic flow does
-    //   document.querySelector(`.chonk-cup-marker[data-loc-id="${loc.id}"]`)
-    // at click time and reads its getBoundingClientRect() to snap the
-    // cinematic iframe to the pin's screen position. Drop the attribute
-    // and the cinematic falls back to direct-modal mode silently.
-    for (const loc of DROP_RACE_LOCATIONS) {
-      const html = cupMarkerHtml(loc);
-      expect(html).toContain(`data-loc-id="${loc.id}"`);
-    }
-  });
-
-  it("carries data-spin echoing the v= multiplier (lets the cinematic match spin rate)", () => {
-    const html = cupMarkerHtml(sampleLocation);
-    const v = html.match(/v=([0-9.]+)/)?.[1];
-    expect(v).toBeDefined();
-    expect(html).toContain(`data-spin="${v}"`);
-  });
-
   it("renders only the iframe — no pink wordmark fallback, no vote badge on the marker itself", () => {
     // The marker is now the bare 3D cup: no pink halo, no 'chonk.' text
     // backdrop, no vote badge attached to the pin. Vote counts live in

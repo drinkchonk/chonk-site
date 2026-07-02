@@ -106,3 +106,39 @@ The user is non-technical. Keep explanations simple and jargon-light. After chan
 For external tools (Vercel, Supabase, domain setup, GitHub): walk the user to the exact location (`Vercel dashboard → Project → Settings → Environment Variables`) and describe each field in one line. Less is more.
 
 If something failed, say so plainly and give the single clearest fix.
+
+---
+
+## Skill leverage (when working on this site)
+
+Mention which one(s) apply on first prompt of a session — keep it to ≤3.
+
+**Deploy + Vercel (`.claude/settings.json` re-enables vercel plugin here):**
+- `vercel:vercel-cli` — every deploy / log inspection
+- `vercel:deployments-cicd` — wiring CI/CD or PR previews
+- `vercel:verification` — before promoting a preview to production
+- `vercel:env-vars` / `vercel:env` — adding/rotating env vars (Supabase, Resend, etc.)
+
+**Building (Next.js 16 / App Router):**
+- `vercel:nextjs` — framework idioms (read `node_modules/next/dist/docs/` first per AGENTS.md)
+- `vercel:next-cache-components` — RSC + cache performance
+- `vercel:react-best-practices` — component refactors
+- `vercel:shadcn` — UI primitives (if/when introduced)
+- `vercel:vercel-functions` — serverless / edge API routes
+- `vercel:routing-middleware` — auth, redirects, geo, A/B
+
+**Persistence + AI:**
+- `vercel:vercel-storage` — KV, Blob, Postgres (Supabase wired but unused today)
+- `vercel:ai-sdk` / `vercel:ai-gateway` — if AI features land
+
+**Content + brand (cross-cuts with the Chonk marketing assets in `~/Desktop/chonk./`):**
+- `brand-voice:enforce-voice` — keep landing copy in Chonk's voice
+- `marketing:content-creation` / `marketing:draft-content` — landing/blog copy
+- `design:ux-copy` — microcopy, buttons, errors
+- `design:design-system` — token + component decisions
+- `anthropic-skills:chonk-marketing` — Chonk-specific marketing patterns
+
+**Always-on doctrine:**
+- `konnyaku` — TPS doctrine
+- `test-driven-development` + `tdd-harness` — building behavior
+- `grill-me-codebase` — before structural decisions

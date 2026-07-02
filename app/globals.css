@@ -568,95 +568,12 @@
     }
   }
 
-  /* ─── Click-cinematic overlay ──────────────────────────────────────
-     When a Drop Race pin is clicked (in motion-OK mode), this iframe
-     snaps to the pin's screen rect then tweens to fullscreen over 3.5s
-     while the host iframe (chonk-hero.html) plays the camera-dolly +
-     blueprint-fade + fade-to-black sequence internally. JS owns the
-     inline top/left/width/height; CSS owns idle chrome + visibility. */
-  .chonk-cinematic-iframe {
-    position: fixed;
-    border: 0;
-    background: transparent;
-    pointer-events: none;
-    z-index: 1500;
-    /* Idle parking: off-screen at a valid size so the iframe's
-       Three.js scene boots + emits chonk-cup-ready before the user
-       ever clicks. visibility:hidden keeps it out of the a11y tree. */
-    top: -9999px;
-    left: -9999px;
-    width: 320px;
-    height: 320px;
-    opacity: 0;
-    visibility: hidden;
-  }
-  .chonk-cinematic-iframe[data-cinematic-state="playing"],
-  .chonk-cinematic-iframe[data-cinematic-state="voting"],
-  .chonk-cinematic-iframe[data-cinematic-state="done"] {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  /* Click-to-skip surface — covers the whole cinematic so a tap
-     anywhere advances the timeline. Above the cinematic iframe
-     (z 1500), below the form modal (z 2000). */
-  .chonk-cinematic-skip-zone {
-    position: fixed;
-    inset: 0;
-    z-index: 1600;
-    background: transparent;
-    cursor: pointer;
-  }
-
-  /* During cinematic, fade the map tiles to black underneath. The
-     cinematic iframe's own final-frame black overlay completes the
-     blackout — these two stack additively so any seam between them
-     is invisible. Markers are handled by their own rule below. */
-  section[data-cinematic-state]:not([data-cinematic-state="idle"]) [data-testid="drop-race-map"] {
-    transition: opacity 1.6s ease-in;
-    opacity: 0;
-  }
-
-  /* Fade UI chrome (headline panel, total-votes counter, leaderboard)
-     out as the cinematic takes over. Faster than the map fade so the
-     chrome is gone before the visual focus locks onto the cup. */
-  section[data-cinematic-state]:not([data-cinematic-state="idle"]) .chonk-map-chrome {
-    transition: opacity 280ms ease-out;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Every map marker (including the clicked one) fades out — the
-     cinematic iframe is the visible cup from this point on. Cross-fade
-     with the cinematic iframe (240ms opacity) is fast enough that the
-     visual reads as "the same cup grew." */
-  section[data-cinematic-state]:not([data-cinematic-state="idle"]) .chonk-cup-marker {
-    transition: opacity 240ms ease-out;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  /* Modal fade-in: the form materialises on top of the final frame of
-     the cinematic. Keyframes here, the modal's inline animation
-     property references this name. */
+  /* Modal fade-in: the vote form materialises on top of the map.
+     Keyframes here; the modal's inline `animation` property references
+     this name. */
   @keyframes chonk-modal-fade-in {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    /* Reduced-motion users never see the cinematic — the click handler
-       branches to the direct-modal path before any of the rules above
-       fire. These overrides exist as a belt-and-braces safety net so
-       if the state ever lands in 'playing'/'voting'/'done' under
-       reduced-motion (e.g. via a future code path), the user gets
-       instant transitions instead of long tweens. */
-    .chonk-cinematic-iframe,
-    section[data-cinematic-state]:not([data-cinematic-state="idle"]) [data-testid="drop-race-map"],
-    section[data-cinematic-state]:not([data-cinematic-state="idle"]) .chonk-map-chrome,
-    section[data-cinematic-state]:not([data-cinematic-state="idle"]) .chonk-cup-marker {
-      transition: none !important;
-    }
   }
 
 }

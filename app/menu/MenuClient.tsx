@@ -31,7 +31,7 @@ export default function MenuClient() {
               The menu
             </span>
             <h1 className="text-hero mt-3 max-w-[820px]">
-              <span style={{ color: "var(--color-pink)" }}>Four chonks.</span>{" "}
+              <span style={{ color: "var(--color-pink)" }}>Three chonks.</span>{" "}
               One standard.
             </h1>
             <p
@@ -337,7 +337,7 @@ export default function MenuClient() {
             </span>
             <h2 className="text-section">The whole lineup.</h2>
           </header>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {products.map((p) => (
               <button
                 key={p.id}
